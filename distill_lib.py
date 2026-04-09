@@ -220,6 +220,68 @@ def loss_gram(student, teacher):
 # Setting either to None disables that branch (e.g. stage 1 has no teacher).
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Weights & Biases logging helpers
+# ---------------------------------------------------------------------------
+# The scripts never import wandb directly — they go through `maybe_init_wandb`
+# and `wandb_log`, which are no-ops if wandb isn't installed or if
+# `--wandb_project` is not set. This way every script works out of the box
+# without wandb, and opting in is a single CLI flag.
+# ---------------------------------------------------------------------------
+
+def maybe_init_wandb(args, B, D, C):
+    """Initialise a W&B run if `args.wandb_project` is set. Returns the run
+    object (or None). Safe to call when wandb is not installed."""
+    if not getattr(args, "wandb_project", None):
+        return None
+    try:
+        import wandb
+    except ImportError:
+        print("[distill_lib] wandb not installed; logging disabled", flush=True)
+        return None
+    run_name = getattr(args, "wandb_run_name", None) \
+               or f"{B}_{D}_{C}_seed{args.seed}"
+    run = wandb.init(
+        project=args.wandb_project,
+        entity=getattr(args, "wandb_entity", None) or None,
+        name=run_name,
+        config={
+            "B":                 B,
+            "D":                 D,
+            "C":                 C,
+            "z_dim":             args.z_dim,
+            "hidden_dim":        args.hidden_dim,
+            "lr":                args.lr,
+            "batch_size":        args.batch_size,
+            "alpha_distill":     args.alpha_distill,
+            "updates_per_stage": args.updates_per_stage,
+            "seed":              args.seed,
+        },
+        tags=[B, D, C, "q123", "naive_FB_z_sampler"],
+        reinit=True,
+    )
+    return run
+
+
+def wandb_log(run, payload, step=None):
+    """Safe no-op wrapper around wandb.log."""
+    if run is None:
+        return
+    import wandb
+    wandb.log(payload, step=step)
+
+
+def wandb_finish(run, summary=None):
+    """Save final summary metrics and finish the run (no-op if run is None)."""
+    if run is None:
+        return
+    import wandb
+    if summary:
+        for k, v in summary.items():
+            wandb.summary[k] = v
+    wandb.finish()
+
+
 def joint_update(agent, batch, fb_extra_fn=None, pi_extra_fn=None):
     import torch  # local to keep this module lightweight
 

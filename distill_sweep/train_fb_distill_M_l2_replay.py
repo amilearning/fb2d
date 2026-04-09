@@ -25,7 +25,8 @@ from fb_agent import FBAgent
 from distill_lib import (make_teacher, sample_z, joint_update,
                           get_F, get_B, get_M, get_Q, get_pi,
                           loss_l2, loss_cosine, loss_contrastive, loss_gram,
-                          SAReplayBuffer)
+                          SAReplayBuffer,
+                          maybe_init_wandb, wandb_log, wandb_finish)
 
 QS = ["Q1", "Q2", "Q3"]
 device = torch.device("cuda")
@@ -80,6 +81,12 @@ def main():
     p.add_argument("--alpha_distill", type=float, default=1.0)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--save_dir", default="checkpoints_distill/M_l2_replay")
+    p.add_argument("--wandb_project", default=None,
+                   help="if set, log to this W&B project (no-op otherwise)")
+    p.add_argument("--wandb_entity",  default=None)
+    p.add_argument("--wandb_run_name", default=None)
+    p.add_argument("--log_every", type=int, default=200,
+                   help="how often (in steps) to push training metrics to W&B")
     args = p.parse_args()
 
     np.random.seed(args.seed); torch.manual_seed(args.seed)
@@ -91,7 +98,10 @@ def main():
     agent = FBAgent(2, 2, z_dim=args.z_dim, hidden_dim=args.hidden_dim,
                      lr=args.lr, device=device)
 
-    teacher = None
+    wandb_run = maybe_init_wandb(args, "M", "l2", "replay")
+
+    teacher  = None
+    cum_step = 0
     sa_replay = SAReplayBuffer(max_size=300_000, obs_dim=2, action_dim=2,
                                 device=device)
 
@@ -108,7 +118,9 @@ def main():
             batch = buf.sample(args.batch_size, device=device)
 
             if teacher is None:
-                agent.update(batch)
+                metrics = agent.update(batch) or {}
+                metrics.setdefault("distill_fb", 0.0)
+                metrics.setdefault("distill_pi", 0.0)
             else:
                 def fb_extra_fn(ctx):
                     s_r, a_r = sa_replay.sample(args.batch_size)
@@ -119,7 +131,17 @@ def main():
                     with torch.no_grad():
                         target = get_M(teacher, s_r, a_r, z_r)
                     return args.alpha_distill * loss_l2(student, target)
-                joint_update(agent, batch, fb_extra_fn=fb_extra_fn)
+                metrics = joint_update(agent, batch, fb_extra_fn=fb_extra_fn)
+
+            cum_step += 1
+            if wandb_run is not None and (cum_step % args.log_every == 0):
+                wandb_log(wandb_run, {
+                    "train/stage":      stage_idx + 1,
+                    "train/fb_loss":    metrics.get("fb_loss",    0.0),
+                    "train/actor_loss": metrics.get("actor_loss", 0.0),
+                    "train/distill_fb": metrics.get("distill_fb", 0.0),
+                    "train/distill_pi": metrics.get("distill_pi", 0.0),
+                }, step=cum_step)
 
             if step % 5000 == 0:
                 print(f"  step {step:6d}/{args.updates_per_stage} "
@@ -151,12 +173,28 @@ def main():
         finals_s10[j] = (f < 0.10).mean()
         print(f"  eval {eq}: mean_d={f.mean():.3f}  s@0.10={(f < 0.10).mean():.2f}",
               flush=True)
+        if wandb_run is not None:
+            wandb_log(wandb_run, {
+                f"eval/{eq}/mean_d": float(f.mean()),
+                f"eval/{eq}/s10":    float((f < 0.10).mean()),
+            }, step=cum_step)
 
     # save: shape-(1,3) row representing the final stage's evaluation
     mats_md  = finals_md[None,  :]
     mats_s10 = finals_s10[None, :]
     np.save(os.path.join(save_dir, "mean_d.npy"), mats_md)
     np.save(os.path.join(save_dir, "s10.npy"),    mats_s10)
+
+    wandb_finish(wandb_run, summary={
+        "final_mean_d_avg": float(finals_md.mean()),
+        "final_s10_avg":    float(finals_s10.mean()),
+        "final_mean_d_Q1":  float(finals_md[0]),
+        "final_mean_d_Q2":  float(finals_md[1]),
+        "final_mean_d_Q3":  float(finals_md[2]),
+        "final_s10_Q1":     float(finals_s10[0]),
+        "final_s10_Q2":     float(finals_s10[1]),
+        "final_s10_Q3":     float(finals_s10[2]),
+    })
 
     fig, axes = plt.subplots(1, 2, figsize=(13, 4))
     for ax, mat, title, fmt, cmap in [
