@@ -1,0 +1,87 @@
+_wandb:
+    value:
+        cli_version: 0.25.1
+        e:
+            ol1zexdbicngix6p9na8dg2mkb6u7nat:
+                args:
+                    - --updates_per_stage
+                    - "60000"
+                    - --seed
+                    - "1"
+                    - --save_dir
+                    - /home/frl/FB2D/checkpoints_distill_real/M_l2_replay
+                    - --wandb_project
+                    - fb2d-distill
+                    - --wandb_run_name
+                    - M_l2_replay_seed1
+                codePath: distill_sweep/train_fb_distill_M_l2_replay.py
+                codePathLocal: distill_sweep/train_fb_distill_M_l2_replay.py
+                cpu_count: 24
+                cpu_count_logical: 32
+                cudaVersion: "13.0"
+                disk:
+                    /:
+                        total: "195722883072"
+                        used: "55833767936"
+                email: ghwls9202@gmail.com
+                executable: /home/frl/anaconda3/envs/incr_learn/bin/python
+                git:
+                    commit: 42725d20831f7e86353d36cdd49ebf923b4540f1
+                    remote: https://github.com/amilearning/fb2d.git
+                gpu: NVIDIA GeForce RTX 4090
+                gpu_count: 1
+                gpu_nvidia:
+                    - architecture: Ada
+                      cudaCores: 16384
+                      memoryTotal: "25757220864"
+                      name: NVIDIA GeForce RTX 4090
+                      uuid: GPU-83cbb55e-d411-3190-fc51-0ae107048ef9
+                host: frl-MS-7D96
+                memory:
+                    total: "67251597312"
+                os: Linux-6.17.0-19-generic-x86_64-with-glibc2.39
+                program: /home/frl/FB2D/distill_sweep/train_fb_distill_M_l2_replay.py
+                python: CPython 3.11.15
+                root: /home/frl/FB2D
+                startedAt: "2026-04-10T07:01:54.960052Z"
+                writerId: ol1zexdbicngix6p9na8dg2mkb6u7nat
+        m: []
+        python_version: 3.11.15
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 2
+                - 13
+                - 15
+                - 16
+                - 61
+                - 62
+            "4": 3.11.15
+            "5": 0.25.1
+            "10":
+                - 20
+            "12": 0.25.1
+            "13": linux-x86_64
+B:
+    value: M
+C:
+    value: replay
+D:
+    value: l2
+alpha_distill:
+    value: 1
+batch_size:
+    value: 512
+hidden_dim:
+    value: 256
+lr:
+    value: 0.0001
+seed:
+    value: 1
+updates_per_stage:
+    value: 60000
+z_dim:
+    value: 32

@@ -1,0 +1,52 @@
+{
+  "os": "Linux-6.17.0-19-generic-x86_64-with-glibc2.39",
+  "python": "CPython 3.11.15",
+  "startedAt": "2026-04-10T11:58:50.175283Z",
+  "args": [
+    "--updates_per_stage",
+    "60000",
+    "--seed",
+    "1",
+    "--save_dir",
+    "/home/frl/FB2D/checkpoints_distill_real/pi_contrastive_current",
+    "--wandb_project",
+    "fb2d-distill",
+    "--wandb_run_name",
+    "pi_contrastive_current_seed1"
+  ],
+  "program": "/home/frl/FB2D/distill_sweep/train_fb_distill_pi_contrastive_current.py",
+  "codePath": "distill_sweep/train_fb_distill_pi_contrastive_current.py",
+  "codePathLocal": "distill_sweep/train_fb_distill_pi_contrastive_current.py",
+  "git": {
+    "remote": "https://github.com/amilearning/fb2d.git",
+    "commit": "42725d20831f7e86353d36cdd49ebf923b4540f1"
+  },
+  "email": "ghwls9202@gmail.com",
+  "root": "/home/frl/FB2D",
+  "host": "frl-MS-7D96",
+  "executable": "/home/frl/anaconda3/envs/incr_learn/bin/python",
+  "cpu_count": 24,
+  "cpu_count_logical": 32,
+  "gpu": "NVIDIA GeForce RTX 4090",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "195722883072",
+      "used": "56766803968"
+    }
+  },
+  "memory": {
+    "total": "67251597312"
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4090",
+      "memoryTotal": "25757220864",
+      "cudaCores": 16384,
+      "architecture": "Ada",
+      "uuid": "GPU-83cbb55e-d411-3190-fc51-0ae107048ef9"
+    }
+  ],
+  "cudaVersion": "13.0",
+  "writerId": "u93b6d93qn2h8mo305aimgpkjl7g0uqu"
+}
