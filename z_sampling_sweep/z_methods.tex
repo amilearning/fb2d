@@ -1,0 +1,132 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1.4cm, top=1.2cm, bottom=1.2cm]{geometry}
+\usepackage{amsmath, amssymb, longtable}
+\pagestyle{empty}
+
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\Dold}{\mathcal{D}_{\text{old}}}
+\newcommand{\method}[2]{%
+  \noindent\rule{\textwidth}{0.5pt}\\[2pt]
+  {\large\textbf{#1}}\\[2pt]
+  \textit{#2}\\[3pt]
+}
+
+\begin{document}
+
+\begin{center}
+{\Large\textbf{Axis E: z-Sampling Strategies for FB Continual Learning}}\\[4pt]
+{\small Nav2D QuadDyn $\cdot$ Q1$\to$Q2$\to$Q3 $\cdot$ 60k updates/stage $\cdot$ $z_{\text{dim}}=32$}
+\end{center}
+
+\noindent\textbf{Common:}\;
+$\mu_k$ = vMF mean for task $k$;\;
+$\kappa$ = concentration;\;
+$\sigma_j$ = per-dim z-sensitivity;\;
+$\Dold$ = $(s,a)$ replay from previous stages.\\
+Distillation (when applied) = $\pi$(Gram, replay) + FB($L_2$, replay), the best B$\times$C$\times$D config.
+
+%% ============================================================
+%% GROUP A
+%% ============================================================
+\method{A1: vMF Task-Binding, No Distillation}{Each stage samples $z$ from its own vMF component.}
+\vspace{-0.5em}
+\[
+z^{(k)} \sim \mathrm{vMF}(\mu_k,\, \kappa), \qquad
+\mu_1, \mu_2, \mu_3 = \text{orthogonal basis vectors} \times \sqrt{d}
+\]
+No distillation. The vMF concentration $\kappa$ controls how tightly each task's $z$-samples cluster around $\mu_k$. \textbf{Isolates the effect of z-space task partitioning.}
+
+\method{A2: vMF Non-Task-Binding, No Distillation}{Sample $z$ from the uniform mixture of all components.}
+\vspace{-0.5em}
+\[
+z \sim \frac{1}{K}\sum_{k=1}^{K} \mathrm{vMF}(\mu_k,\, \kappa), \qquad K = \text{number of stages so far}
+\]
+All components are sampled regardless of the current stage. No task partitioning of $z$-space.
+
+%% ============================================================
+%% GROUP B
+%% ============================================================
+\method{B1: vMF Task-Binding + Distillation}{Structured $z$ + policy \& representation anchoring.}
+\vspace{-0.5em}
+\begin{align*}
+z^{(k)} &\sim \mathrm{vMF}(\mu_k, \kappa) \\
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla[\loss_{\text{FB}} + \alpha\,\loss_{\text{distill}}^{FB}]\bigr) \\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla[-Q + \alpha\,\loss_{\text{distill}}^{\pi\text{-Gram}}]\bigr)
+\end{align*}
+Combines task-partitioned $z$ (memory via structure) with distillation (memory via regularisation).
+
+\method{B2: vMF Non-Task-Binding + Distillation}{Mixture $z$ + full distillation.}
+Same as B1 but $z \sim \frac{1}{K}\sum_k \mathrm{vMF}(\mu_k, \kappa)$. Tests whether distillation compensates for the lack of task binding.
+
+%% ============================================================
+%% GROUP C — SMR
+%% ============================================================
+\method{C1: SMR-F, No Distillation}{Route $z$ away from F-sensitive dims.}
+\vspace{-0.5em}
+\begin{align*}
+\sigma_j &= \bigl\langle \bigl| \partial \|F(s,a,z)\|^2 / \partial z_j \bigr| \bigr\rangle_{(s,a)\sim\Dold} \\
+z^{(k)}_j &= \begin{cases} \mathcal{N}(0,1) & \text{if } \sigma_j < \text{threshold} \\ 0 & \text{otherwise}\end{cases}, \quad z \leftarrow \sqrt{d}\; z / \|z\|
+\end{align*}
+Masks the top 50\% most F-sensitive z-dims. New-task $z$ lives in the complementary subspace.
+
+\method{C2: SMR-B, No Distillation}{Route $z$ via M=$F{\cdot}B^\top$ sensitivity, B-weighted.}
+Same as C1 but $\sigma_j$ is computed through $M = F \cdot B^\top$ (sensitivity of the successor measure, weighted by the backward representation).
+
+\method{C3: SMR-FB, No Distillation}{Route $z$ via full M sensitivity.}
+$\sigma_j = \langle |\partial \|M\|^2 / \partial z_j| \rangle$. Captures how $z$ affects the complete successor measure.
+
+\method{C4: SMR-$\pi$, No Distillation}{Route $z$ away from $\pi$-sensitive dims.}
+$\sigma_j = \langle |\partial \|\pi(s,z)\|^2 / \partial z_j| \rangle_{s \sim \Dold}$. Preserves old-task policy structure.
+
+\method{C5: SMR-$\pi$FB, No Distillation}{Route $z$ via combined $\pi$ + M sensitivity.}
+$\sigma_j = \langle |\partial(\|M\|^2 + \|\pi\|^2) / \partial z_j| \rangle$. Most comprehensive sensitivity signal.
+
+%% ============================================================
+%% GROUP C — FDWS
+%% ============================================================
+\method{C6: FDWS-F, No Distillation}{Soft-weight $z$-dims inversely by F sensitivity.}
+\vspace{-0.5em}
+\[
+z_j \sim \mathcal{N}\bigl(0,\; e^{-\tau \cdot \sigma_j^{(F)}}\bigr), \quad z \leftarrow \sqrt{d}\; z / \|z\|
+\]
+Unlike SMR's hard mask, FDWS scales each dim continuously. $\tau$ = temperature.
+
+\method{C7: FDWS-B, No Distillation}{Soft-weight via M sensitivity (B-weighted).}
+Same as C6 but $\sigma^{(B)}$ from $M = F \cdot B^\top$.
+
+\method{C8: FDWS-FB, No Distillation}{Soft-weight via full M sensitivity.}
+$\sigma^{(FB)}$ from full $M$.
+
+\method{C9: FDWS-$\pi$, No Distillation}{Soft-weight via policy sensitivity.}
+$\sigma^{(\pi)}$ from $\pi(s,z)$.
+
+\method{C10: FDWS-$\pi$FB, No Distillation}{Soft-weight via combined $\pi$ + M sensitivity.}
+$\sigma^{(\pi FB)}$ from $\|M\|^2 + \|\pi\|^2$.
+
+%% ============================================================
+%% GROUP D — SMR + DISTILL
+%% ============================================================
+\method{D1--D5: SMR-\{F, B, FB, $\pi$, $\pi$FB\} + Distillation}{Sensitivity-masked routing combined with piGram + FB$_{L2}$ replay.}
+\vspace{-0.5em}
+\begin{align*}
+z &\leftarrow \text{SMR}(\sigma^{(\cdot)}) \quad \text{(mask high-sensitivity dims)} \\
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla[\loss_{\text{FB}} + \alpha\,\loss_{\text{distill}}^{FB}]\bigr) \\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla[-Q + \alpha\,\loss_{\text{distill}}^{\pi\text{-Gram}}]\bigr)
+\end{align*}
+Tests whether sensitivity routing \emph{on top of} distillation provides additional memory beyond what distillation alone achieves.
+
+%% ============================================================
+%% GROUP D — FDWS + DISTILL
+%% ============================================================
+\method{D6--D10: FDWS-\{F, B, FB, $\pi$, $\pi$FB\} + Distillation}{Fisher-weighted sampling combined with piGram + FB$_{L2}$ replay.}
+\vspace{-0.5em}
+\[
+z_j \sim \mathcal{N}(0,\; e^{-\tau\sigma_j}), \quad + \quad \loss_{\text{distill}}^{FB} + \loss_{\text{distill}}^{\pi\text{-Gram}}
+\]
+Soft version of Group D1--D5. Same distillation, but $z$-dims are weighted rather than masked.
+
+\vspace{6pt}
+\noindent\rule{\textwidth}{0.5pt}
+\noindent\textbf{Summary:} 24 configs total = 2 vMF $\times$ 2 distill + 5 sensitivity sources $\times$ 2 routing methods $\times$ 2 distill = $4 + 20 = 24$.
+
+\end{document}

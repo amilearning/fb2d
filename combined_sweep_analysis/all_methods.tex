@@ -1,0 +1,159 @@
+\documentclass[10pt]{article}
+\usepackage[margin=1.5cm, top=1.2cm, bottom=1.2cm]{geometry}
+\usepackage{amsmath, amssymb}
+\pagestyle{empty}
+
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Dold}{\mathcal{D}_{\text{old}}}
+\newcommand{\method}[2]{%
+  \noindent\rule{\textwidth}{0.5pt}\\[2pt]
+  {\large\textbf{#1}}\\[2pt]
+  \textit{#2}\\[4pt]
+}
+\newcommand{\myhrule}{\vspace{4pt}\noindent\rule{\textwidth}{0.3pt}\vspace{4pt}}
+
+\begin{document}
+
+\begin{center}
+{\Large\textbf{FB Continual Learning: Distillation Method Descriptions}}\\[4pt]
+{\small Nav2D QuadDyn $\cdot$ 3 stages (Q1$\to$Q2$\to$Q3) $\cdot$ 60k updates/stage $\cdot$ $z \sim \mathrm{Uniform}(\mathbb{S}^{d-1})\cdot\sqrt{d}$}
+\end{center}
+
+\noindent\textbf{Common notation:}\;
+$F_1, F_2$: twin forward heads;\;
+$B$: backward net;\;
+$\pi$: actor;\;
+$M = F \cdot B^\top$;\;
+$Q = F^\top z$;\;
+Teacher $(\theta^t)$ = frozen snapshot from previous stage;\;
+$\Dold$ = replay buffer of $(s,a)$ from past stages;\;
+$\alpha$ = distillation weight.
+
+%% ============================================================
+\method{1. Naive Sequential Baseline}{No distillation. Each stage trains only on Qk data.}
+\vspace{-0.5em}
+\begin{align*}
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,\loss_{\text{FB}}\bigr), \qquad
+\theta_\pi \leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q]\bigr)
+\end{align*}
+No teacher, no replay. \textbf{Full catastrophic forgetting} on previous quadrants.
+
+%% ============================================================
+\method{2. Cumulative Baseline (Upper Bound)}{Buffer accumulates all data from stages $1 \ldots k$.}
+\vspace{-0.5em}
+\[
+\text{Same as (1), but the training buffer at stage } k \text{ contains } \bigcup_{i=1}^{k} \mathcal{D}_{Q_i}.
+\]
+No forgetting by construction (old data always present). \textbf{Upper bound on performance.}
+
+%% ============================================================
+\method{3. $\pi$-only Distillation (Gram, Replay)}{Distill the actor's relational structure on old states.}
+\vspace{-0.5em}
+\begin{align*}
+G_s &= \pi(s_r, z_r;\,\theta_\pi)\,\pi(s_r, z_r;\,\theta_\pi)^\top, \quad
+G_t = \pi(s_r, z_r;\,\theta_\pi^t)\,\pi(s_r, z_r;\,\theta_\pi^t)^\top, \quad (s_r, \_) \sim \Dold\\[3pt]
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2 / n^2]\bigr)
+\end{align*}
+FB networks get no distillation. \textbf{High plasticity, zero memory.}
+
+%% ============================================================
+\method{4. F-only Distillation ($L_2$, Current / Replay)}{Anchor forward features to the teacher.}
+\vspace{-0.5em}
+\[
+\loss_{\text{distill}}^{F} = \alpha\bigl[\|F_1^s - F_1^t\|^2 + \|F_2^s - F_2^t\|^2\bigr], \qquad
+\theta_F, \theta_B \leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \loss_{\text{distill}}^{F}]\bigr)
+\]
+Input: current batch (C=current) or $(s_r, a_r) \sim \Dold$ (C=replay). Actor unchanged.
+
+%% ============================================================
+\method{5. B-only Distillation ($L_2$, Current / Replay)}{Anchor backward (state) features to the teacher.}
+\vspace{-0.5em}
+\[
+\loss_{\text{distill}}^{B} = \alpha\,\|B(s;\,\theta_B) - B(s;\,\theta_B^t)\|^2, \qquad
+\theta_F, \theta_B \leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \loss_{\text{distill}}^{B}]\bigr)
+\]
+Preserves the $z$-space structure (since $B$ maps states to $z$-space). Actor unchanged.
+
+%% ============================================================
+\method{6. F+B Distillation ($L_2$, Current / Replay)}{Anchor both forward and backward features.}
+\vspace{-0.5em}
+\[
+\loss_{\text{distill}}^{FB} = \alpha\bigl[\|F_1^s - F_1^t\|^2 + \|F_2^s - F_2^t\|^2 + \|B^s - B^t\|^2\bigr]
+\]
+Added to $\loss_{\text{FB}}$ before the single Adam step on $\theta_F, \theta_B$. Actor unchanged.
+
+%% ============================================================
+\method{7. M Distillation ($L_2$, Current / Replay)}{Anchor the successor measure matrix directly.}
+\vspace{-0.5em}
+\[
+M^s = F_1(s,a,z;\,\theta_F) \cdot B(s;\,\theta_B)^\top \in \R^{n \times n}, \quad
+\loss_{\text{distill}}^{M} = \alpha\,\|M^s - M^t\|_F^2
+\]
+Distills the product $F \cdot B^\top$ rather than $F$ and $B$ individually. Actor unchanged.
+
+%% ============================================================
+\method{8. Q Distillation ($L_2$, Current / Replay)}{Anchor the $z$-conditioned value function.}
+\vspace{-0.5em}
+\[
+Q^s = (F_1 \cdot z)_{\text{sum}}, \qquad
+\loss_{\text{distill}}^{Q} = \alpha\,\|Q^s - Q^t\|^2
+\]
+Scalar per sample. A $z$-weighted projection of the F-distillation.
+
+%% ============================================================
+\method{9. Combined: $\pi$(Gram, Replay) + F($L_2$, Replay)}{Policy geometry + forward feature anchoring.}
+\vspace{-0.5em}
+\begin{align*}
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \alpha\,(\|F_1^s - F_1^t\|^2 + \|F_2^s - F_2^t\|^2)]\bigr)\\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2/n^2]\bigr)
+\end{align*}
+Both losses use replay $(s_r, a_r) \sim \Dold$.
+
+%% ============================================================
+\method{10. Combined: $\pi$(Gram, Replay) + B($L_2$, Replay)}{Policy geometry + backward representation anchoring.}
+\vspace{-0.5em}
+\begin{align*}
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \alpha\,\|B^s - B^t\|^2]\bigr)\\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2/n^2]\bigr)
+\end{align*}
+\textbf{Best memory/plasticity balance} in our experiments ($\text{memory}=0.39$, $\text{plasticity}=0.51$).
+
+%% ============================================================
+\method{11. Combined: $\pi$(Gram, Replay) + FB($L_2$, Replay)}{Policy + forward + backward anchoring.}
+\vspace{-0.5em}
+\begin{align*}
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \alpha\,(\|F_1^s{-}F_1^t\|^2 + \|F_2^s{-}F_2^t\|^2 + \|B^s{-}B^t\|^2)]\bigr)\\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2/n^2]\bigr)
+\end{align*}
+\textbf{Lowest overall mean\_d} in our experiments (0.169).
+
+%% ============================================================
+\method{12. Combined: $\pi$(Gram, Replay) + M($L_2$, Replay)}{Policy + successor measure anchoring.}
+\vspace{-0.5em}
+\begin{align*}
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \alpha\,\|M^s - M^t\|_F^2]\bigr)\\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2/n^2]\bigr)
+\end{align*}
+
+%% ============================================================
+\method{13. Combined: $\pi$(Gram, Replay) + Q($L_2$, Replay)}{Policy + value-function anchoring.}
+\vspace{-0.5em}
+\begin{align*}
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \alpha\,\|Q^s - Q^t\|^2]\bigr)\\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2/n^2]\bigr)
+\end{align*}
+
+%% ============================================================
+\method{14. Combined: $\pi$(Gram, Replay) + FBM($L_2$, Replay)}{Policy + full representation suite.}
+\vspace{-0.5em}
+\begin{align*}
+\loss_{\text{distill}}^{FBM} &= \alpha\bigl[\|F_1^s{-}F_1^t\|^2 + \|F_2^s{-}F_2^t\|^2 + \|B^s{-}B^t\|^2 + \|M^s{-}M^t\|_F^2\bigr]\\
+\theta_F, \theta_B &\leftarrow \mathrm{Adam}\bigl(\nabla\,[\loss_{\text{FB}} + \loss_{\text{distill}}^{FBM}]\bigr)\\
+\theta_\pi &\leftarrow \mathrm{Adam}\bigl(\nabla\,[-Q + \alpha\,\|G_s - G_t\|_F^2/n^2]\bigr)
+\end{align*}
+\textbf{Highest memory} (0.56) but trades off plasticity (0.13). Most aggressive regularisation.
+
+\noindent\rule{\textwidth}{0.5pt}
+
+\end{document}

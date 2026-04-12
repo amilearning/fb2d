@@ -32,6 +32,11 @@ results/
 plots/
 figures/
 
+# Weights & Biases
+wandb/
+*.wandb
+wandb-*
+
 # Editor / OS
 .vscode/
 .idea/

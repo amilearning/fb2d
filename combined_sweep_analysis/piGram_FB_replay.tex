@@ -1,0 +1,73 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1.8cm, top=1.5cm, bottom=1.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{bm}
+\pagestyle{empty}
+
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\R}{\mathbb{R}}
+
+\begin{document}
+
+\begin{center}
+\textbf{\large Combined Distillation: $\pi$-Gram + FB-Replay}
+\end{center}
+
+\vspace{-0.3em}
+\noindent\rule{\textwidth}{0.5pt}
+
+\smallskip
+\noindent\textbf{Setup.}\;
+At each stage $k \geq 2$, a \emph{teacher} $(\theta_F^t, \theta_B^t, \theta_\pi^t)$ is a frozen snapshot of the agent from stage $k{-}1$.
+A replay buffer $\mathcal{D}_{\text{old}}$ stores $(s,a)$ pairs from stages $1,\dots,k{-}1$.
+Fresh $z \sim \mathrm{Uniform}(\mathbb{S}^{d-1}) \cdot \sqrt{d}$ is sampled per step.
+
+\medskip
+\noindent\textbf{1.\; FB Loss} (standard, on current-task batch $\{s_i, a_i, s'_i\}_{i=1}^n$):
+\begin{align*}
+M_{ij} &= F(s_i, a_i, z;\,\theta_F)^\top B(s'_j;\,\theta_B), \qquad
+\loss_{\text{TD}} = \sum_{i \neq j} \bigl\| M_{ij} - \gamma\, M^{\text{tgt}}_{ij} \bigr\|^2 - \sum_i M_{ii}\\[4pt]
+\loss_{\text{ortho}} &= -2\,\mathrm{tr}(BB^\top)/n \;+\; \bigl\| \mathrm{off}(BB^\top) \bigr\|^2_F, \qquad
+\loss_{\text{FB}} = \loss_{\text{TD}} + \lambda\,\loss_{\text{ortho}}
+\end{align*}
+
+\medskip
+\noindent\textbf{2.\; FB-side Distillation} (F + B via $L_2$, \textbf{replay} input):
+\vspace{-0.2em}
+\[
+\loss_{\text{distill}}^{FB}
+= \alpha \Bigl[
+\bigl\| F_1(s_r, a_r, z_r;\,\theta_F) - F_1(s_r, a_r, z_r;\,\theta_F^t) \bigr\|^2
++ \bigl\| F_2(\cdot) - F_2^t(\cdot) \bigr\|^2
++ \bigl\| B(s_r;\,\theta_B) - B(s_r;\,\theta_B^t) \bigr\|^2
+\Bigr]
+\]
+where $(s_r, a_r) \sim \mathcal{D}_{\text{old}},\; z_r \sim \mathrm{Uniform}(\mathbb{S}^{d-1})\cdot\sqrt{d}$.
+
+\medskip
+\noindent\textbf{3.\; Actor-side Distillation} ($\pi$ via \textbf{Gram} loss, \textbf{replay} input):
+\vspace{-0.2em}
+\begin{align*}
+G_s &= \pi(s_r, z_r;\,\theta_\pi)\,\pi(s_r, z_r;\,\theta_\pi)^\top \in \R^{n \times n}, \qquad
+G_t = \pi(s_r, z_r;\,\theta_\pi^t)\,\pi(s_r, z_r;\,\theta_\pi^t)^\top\\[4pt]
+\loss_{\text{distill}}^{\pi} &= \alpha \,\bigl\| G_s - G_t \bigr\|^2_F \,/\, n^2
+\end{align*}
+
+\medskip
+\noindent\textbf{4.\; Joint Optimisation} (single Adam step per component):
+\vspace{-0.2em}
+\begin{align*}
+\theta_F,\,\theta_B &\leftarrow \textstyle \mathrm{Adam}\bigl(\nabla_{\theta_F,\theta_B}\,[\;\loss_{\text{FB}} + \loss_{\text{distill}}^{FB}\;]\bigr)\\[4pt]
+\theta_\pi &\leftarrow \textstyle \mathrm{Adam}\bigl(\nabla_{\theta_\pi}\,[\;-\mathbb{E}[Q(s,\pi(s,z),z)] + \loss_{\text{distill}}^{\pi}\;]\bigr)
+\end{align*}
+
+\smallskip
+\noindent\rule{\textwidth}{0.5pt}
+\vspace{-0.3em}
+
+\noindent\textbf{Intuition.}\;
+$\loss_{\text{distill}}^{FB}$ anchors the state representations ($B$) and successor features ($F$) on old-task states $\to$ \textbf{memory}.
+$\loss_{\text{distill}}^{\pi}$ preserves the policy's relational geometry on old-task states via the Gram matrix $\to$ \textbf{plasticity}.
+Both losses use \emph{replay data}, so they do not interfere with learning the current task.
+
+\end{document}
