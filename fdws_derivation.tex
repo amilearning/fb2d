@@ -1,0 +1,133 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsmath, amssymb, bm}
+\usepackage{booktabs}
+\pagestyle{empty}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Dold}{\mathcal{D}_{\text{old}}}
+\newcommand{\loss}{\mathcal{L}}
+
+\begin{document}
+
+\begin{center}
+{\LARGE\textbf{FDWS: Fisher-weighted z-Sampling}}\\[6pt]
+{\large Mathematical Derivation for FB Continual Learning}
+\end{center}
+
+\vspace{0.5em}
+\noindent\rule{\textwidth}{0.5pt}
+
+\section*{1.\; Fisher Information as z-Sensitivity}
+
+After training task $k{-}1$, the agent has a learned mapping $f(s,a,z;\theta)$ (the forward network $F$, the successor measure $M = F\cdot B^\top$, or the policy $\pi$). We define the \textbf{per-dimension z-sensitivity vector} $\bm{\sigma} \in \R^d$:
+\[
+\sigma_j \;=\; \E_{(s,a)\,\sim\,\Dold}\!\left[\; \left\| \frac{\partial\, f(s,a,z;\,\theta)}{\partial\, z_j} \right\|^2 \;\right], \qquad j = 1,\ldots,d
+\]
+This is the diagonal of the \textbf{Fisher Information Matrix} projected onto $z$-space. It measures how much each $z$-dimension affects the network's output on old-task data.
+
+\medskip
+\noindent\textbf{Interpretation:}
+\begin{itemize}
+\item $\sigma_j$ large $\;\Rightarrow\;$ dimension $j$ is ``occupied'' by old tasks; perturbing $z_j$ disrupts old-task behaviour.
+\item $\sigma_j \approx 0$ $\;\Rightarrow\;$ dimension $j$ is ``free''; the new task can safely use it.
+\end{itemize}
+
+\noindent We normalise: $\hat{\sigma}_j = \sigma_j \,/\, \max_k \sigma_k \;\in\; [0,\,1]$.
+
+\section*{2.\; Inverse-Sensitivity Weighted Sampling}
+
+Standard FB samples $z$ uniformly on the sphere of radius $\sqrt{d}$:
+\[
+z \;\sim\; \mathrm{Uniform}\!\bigl(\mathbb{S}^{d-1}\bigr) \cdot \sqrt{d}
+\]
+FDWS replaces this with \textbf{per-dimension weighted sampling}:
+
+\begin{equation}
+\boxed{\;
+\tilde{z}_j \;\sim\; \mathcal{N}\!\left(0,\; w_j^2\right), \qquad
+w_j \;=\; \exp\!\bigl(-\tau \cdot \hat{\sigma}_j\bigr), \qquad
+z \;=\; \sqrt{d}\;\frac{\tilde{z}}{\|\tilde{z}\|}
+\;}
+\end{equation}
+
+\noindent where $\tau > 0$ is the \textbf{temperature} controlling routing aggressiveness:
+
+\medskip
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+$\tau$ & Weight $w_j$ & Behaviour \\
+\midrule
+$\tau \to 0$   & $w_j \to 1\;\;\forall j$ & Uniform sampling (no routing) \\
+$\tau = 1.0$   & $w_j = e^{-\hat{\sigma}_j}$ & Moderate: high-sens dims get $\sim$37\% variance \\
+$\tau \to \infty$ & $w_j \to 0$ if $\hat{\sigma}_j > 0$ & Hard mask (equivalent to SMR) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+\noindent The final $\ell_2$-normalisation projects $z$ back onto the sphere, preserving the FB agent's expected $z$-norm.
+
+\section*{3.\; Geometric Intuition}
+
+The FB representation decomposes the task space via $z$: different directions in $z$-space encode different behaviours. FDWS partitions $z$-space implicitly:
+
+\begin{enumerate}
+\item \textbf{New-task gradients concentrate in ``free'' dims.} Since the new task's $z$ has low variance in high-$\sigma$ dims, parameter updates flow primarily through the subspace orthogonal to old tasks $\;\Rightarrow\;$ \textbf{reduced forgetting}.
+
+\item \textbf{Self-organising task structure.} Unlike vMF (which hard-assigns $\mu_k$ per task), FDWS discovers the partition from data. If two tasks share structure, their $z$-subspaces can overlap.
+
+\item \textbf{Soft routing preserves information.} Unlike SMR's binary mask ($w_j \in \{0,1\}$), FDWS reduces but never eliminates variance in sensitive dims, allowing partial reuse.
+\end{enumerate}
+
+\section*{4.\; Sensitivity Accumulation (EMA)}
+
+At the end of each stage $k$, a new sensitivity $\bm{\sigma}^{(k)}$ is computed. The running estimate is updated via exponential moving average:
+\[
+\hat{\bm{\sigma}} \;\leftarrow\; \alpha_{\mathrm{ema}}\,\hat{\bm{\sigma}} \;+\; (1 - \alpha_{\mathrm{ema}})\,\bm{\sigma}^{(k)}
+\]
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+$\alpha_{\mathrm{ema}}$ & Effect \\
+\midrule
+$0.0$ & Only the most recent task's sensitivity (forgets earlier tasks) \\
+$0.5$ & Balanced blend across all stages (\textbf{default, best in our experiments}) \\
+$1.0$ & Frozen at first task's sensitivity \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Our experiments confirmed $\alpha_{\mathrm{ema}} = 0.5 > 0.0$ (mean\_d $0.141$ vs $0.145$).
+
+\section*{5.\; Complete FDWS Training Step}
+
+At each gradient step in stage $k \geq 2$:
+
+\begin{align}
+z &\sim \mathrm{FDWS}(\hat{\bm{\sigma}},\;\tau) \tag{weighted z} \\[8pt]
+\theta_{F,B} &\leftarrow \mathrm{Adam}\!\left(\nabla_{\theta_{F,B}}\left[\; \loss_{\mathrm{FB}}(z) \;+\; \alpha\,\loss_{\mathrm{distill}}^{FB}\bigl(z_r;\,\Dold\bigr) \;\right]\right) \tag{FB + distill} \\[6pt]
+\theta_\pi &\leftarrow \mathrm{Adam}\!\left(\nabla_{\theta_\pi}\left[\; {-}\,Q\bigl(s,\pi(s,z),z\bigr) \;+\; \alpha\,\loss_{\mathrm{distill}}^{\pi\text{-Gram}}\bigl(z_r;\,\Dold\bigr) \;\right]\right) \tag{actor + distill}
+\end{align}
+
+\noindent Note: the FDWS-weighted $z$ is used for the FB training loss, so the new task learns in the ``free'' $z$-subspace. Distillation uses a separate $z_r$ sampled for replay data.
+
+\section*{6.\; Connections to Other Methods}
+
+\begin{center}
+\begin{tabular}{lp{10cm}}
+\toprule
+Method & Relationship to FDWS \\
+\midrule
+\textbf{SMR} & Hard version of FDWS ($\tau \to \infty$, binary mask on $z$-dims) \\
+\textbf{vMF task-binding} & Explicit $z$-partition via $\mu_k$ per task; FDWS = implicit data-driven partition \\
+\textbf{EWC} & Fisher-weighted \emph{parameter} regularisation; FDWS = Fisher-weighted \emph{input} ($z$) routing. Same principle, different space \\
+\textbf{PackNet / HAT} & Hard parameter masking per task; FDWS = soft $z$-masking \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}

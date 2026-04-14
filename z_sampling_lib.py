@@ -205,3 +205,30 @@ def fdws_sample_z(n, z_dim, sensitivity, temperature=1.0, device="cpu"):
     z = z * weights.unsqueeze(0)  # scale each dim by inverse sensitivity
     z = F.normalize(z, dim=-1) * math.sqrt(z_dim)
     return z
+
+
+def fdws_sample_z_high_sens(n, z_dim, sensitivity, temperature=1.0, device="cpu"):
+    """Sample z biased toward HIGH-sensitivity dims (for distillation replay).
+
+    The opposite of fdws_sample_z: high-sensitivity dims get higher variance,
+    low-sensitivity dims get lower variance. This focuses the distillation
+    on z-regions that old tasks actually use.
+
+    Args:
+        n: batch size
+        z_dim: dimensionality
+        sensitivity: (z_dim,) sensitivity vector in [0, 1]
+        temperature: controls how aggressively to boost sensitive dims
+        device: torch device
+
+    Returns:
+        z: (n, z_dim) on sphere of radius sqrt(z_dim)
+    """
+    # Positive sensitivity weights: high sensitivity -> high weight
+    weights = torch.exp(+temperature * sensitivity)
+    weights = weights / weights.mean()  # normalize so avg weight ≈ 1
+
+    z = torch.randn(n, z_dim, device=device)
+    z = z * weights.unsqueeze(0)  # scale each dim by sensitivity
+    z = F.normalize(z, dim=-1) * math.sqrt(z_dim)
+    return z

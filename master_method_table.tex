@@ -1,0 +1,77 @@
+\documentclass[10pt,landscape]{article}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{booktabs}
+\usepackage{adjustbox}
+\usepackage{xcolor}
+\usepackage{colortbl}
+
+\definecolor{bestrow}{rgb}{0.85,0.95,0.85}
+\definecolor{baserow}{rgb}{0.95,0.90,0.80}
+
+\begin{document}
+\pagestyle{empty}
+
+\begin{center}
+{\Large\bfseries Master Method Table: FB Continual Learning Sweeps}\\[4pt]
+{\small Shared parameters: $z_\text{dim}=32$, hidden$=256$, lr$=10^{-4}$, batch$=512$, 60k updates/stage, tasks Q1$\to$Q2$\to$Q3}
+\end{center}
+
+\vspace{4pt}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{rl l l l l l r r rr rr rr r}
+\toprule
+ID & Label & Sweep & $z$-sampling & Distill$_\text{FB}$ & Distill$_\pi$ & Input & $\alpha$ & EMA & \multicolumn{2}{c}{mean\_d$_\text{avg}$} & \multicolumn{2}{c}{s10$_\text{avg}$} & \multicolumn{2}{c}{s10$_\text{Q1}$ (mem)} & s10$_\text{Q3}$ (plas) \\
+ & & & & & & & & & mean & $\pm$std & mean & $\pm$std & mean & $\pm$std & mean \\
+\midrule
+\rowcolor{bestrow}
+M1 & D7 fdws B & z\_sampling & FDWS B & FB\_l2 & pi\_gram & replay & 1.0 & 0.5 & 0.1414 & 0.0094 & 0.383 & 0.008 & 0.471 & 0.056 & 0.321 \\
+M2 & D8 fdws FB & z\_sampling & FDWS FB & FB\_l2 & pi\_gram & replay & 1.0 & 0.5 & 0.1414 & 0.0094 & 0.383 & 0.008 & 0.471 & 0.056 & 0.321 \\
+M3 & D10 fdws piFB & z\_sampling & FDWS piFB & FB\_l2 & pi\_gram & replay & 1.0 & 0.5 & 0.1444 & 0.0045 & 0.406 & 0.024 & 0.500 & 0.064 & 0.354 \\
+M4 & FDWS t=1.0 s=rep & fdws\_sweep & FDWS FB tau=1.0 & FB\_l2 & pi\_gram & replay & 1.0 & 0.0 & 0.1453 & 0.0106 & 0.390 & 0.019 & 0.473 & 0.043 & 0.327 \\
+M5 & vMFmix20+Bpi & vmf\_sweep & vMF mix K=20 & B\_l2 & pi\_gram & replay & 1.0 & - & 0.1495 & 0.0150 & 0.426 & 0.054 & 0.462 & 0.037 & 0.435 \\
+M6 & FDWS t=1.0 s=cur & fdws\_sweep & FDWS FB tau=1.0 & FB\_l2 & pi\_gram & replay & 1.0 & 0.0 & 0.1500 & 0.0028 & 0.369 & 0.038 & 0.463 & 0.080 & 0.300 \\
+M7 & FDWS t=0.5 s=cur & fdws\_sweep & FDWS FB tau=0.5 & FB\_l2 & pi\_gram & replay & 1.0 & 0.0 & 0.1566 & 0.0221 & 0.333 & 0.076 & 0.440 & 0.120 & 0.256 \\
+M8 & D9 fdws pi & z\_sampling & FDWS pi & FB\_l2 & pi\_gram & replay & 1.0 & 0.5 & 0.1584 & 0.0089 & 0.357 & 0.053 & 0.398 & 0.066 & 0.273 \\
+M9 & piGram+FB\_rep & combined & random & FB\_l2 & pi\_gram & replay & 1.0 & - & 0.1688 & 0.0208 & 0.333 & 0.048 & 0.435 & 0.029 & 0.269 \\
+M10 & vMFmix5+FBpi & vmf\_sweep & vMF mix K=5 & FB\_l2 & pi\_gram & replay & 1.0 & - & 0.1702 & 0.0304 & 0.345 & 0.064 & 0.415 & 0.038 & 0.288 \\
+M11 & FDWS t=5.0 s=rep & fdws\_sweep & FDWS FB tau=5.0 & FB\_l2 & pi\_gram & replay & 1.0 & 0.0 & 0.1704 & 0.0080 & 0.326 & 0.035 & 0.475 & 0.022 & 0.281 \\
+M12 & vMFmix20+FBpi & vmf\_sweep & vMF mix K=20 & FB\_l2 & pi\_gram & replay & 1.0 & - & 0.1705 & 0.0147 & 0.312 & 0.012 & 0.404 & 0.044 & 0.246 \\
+M13 & vMFmix10+Bpi & vmf\_sweep & vMF mix K=10 & B\_l2 & pi\_gram & replay & 1.0 & - & 0.1711 & 0.0165 & 0.408 & 0.094 & 0.412 & 0.071 & 0.429 \\
+M14 & FDWS t=5.0 s=cur & fdws\_sweep & FDWS FB tau=5.0 & FB\_l2 & pi\_gram & replay & 1.0 & 0.0 & 0.1721 & 0.0205 & 0.295 & 0.043 & 0.438 & 0.071 & 0.231 \\
+M15 & B2 vmf mix & z\_sampling & vMF mix K=3 & FB\_l2 & pi\_gram & replay & 1.0 & 0.5 & 0.1741 & 0.0096 & 0.285 & 0.030 & 0.448 & 0.060 & 0.260 \\
+M16 & piGram+B\_rep & combined & random & B\_l2 & pi\_gram & replay & 1.0 & - & 0.1750 & 0.0331 & 0.429 & 0.073 & 0.385 & 0.011 & 0.508 \\
+M17 & D6 fdws F & z\_sampling & FDWS F & FB\_l2 & pi\_gram & replay & 1.0 & 0.5 & 0.1781 & 0.0061 & 0.299 & 0.030 & 0.381 & 0.137 & 0.208 \\
+M18 & piL2+FB\_rep & combined & random & FB\_l2 & pi\_l2 & replay & 1.0 & - & 0.1836 & 0.0195 & 0.299 & 0.048 & 0.438 & 0.100 & 0.223 \\
+M19 & vMFmix5+Bpi & vmf\_sweep & vMF mix K=5 & B\_l2 & pi\_gram & replay & 1.0 & - & 0.1872 & 0.0087 & 0.390 & 0.035 & 0.379 & 0.006 & 0.425 \\
+M20 & FDWS t=0.5 s=rep & fdws\_sweep & FDWS FB tau=0.5 & FB\_l2 & pi\_gram & replay & 1.0 & 0.0 & 0.1872 & 0.0104 & 0.324 & 0.029 & 0.438 & 0.075 & 0.227 \\
+M21 & piGram+FBM\_rep & combined & random & FBM\_l2 & pi\_gram & replay & 1.0 & - & 0.1947 & 0.0316 & 0.323 & 0.042 & 0.560 & 0.083 & 0.133 \\
+M22 & piL2+B\_rep & combined & random & B\_l2 & pi\_l2 & replay & 1.0 & - & 0.2010 & 0.0276 & 0.367 & 0.032 & 0.375 & 0.027 & 0.467 \\
+M23 & piL2+M\_rep & combined & random & M\_l2 & pi\_l2 & replay & 1.0 & - & 0.2015 & 0.0264 & 0.272 & 0.027 & 0.535 & 0.054 & 0.110 \\
+\rowcolor{baserow}
+M24 & Naive Seq & baseline & random & none & none & none & - & - & 0.4938 & 0.0139 & 0.168 & 0.062 & 0.504 & 0.185 & 0.000 \\
+\rowcolor{baserow}
+M25 & Cumulative & baseline & random & none & none & none & - & - & 0.4938 & 0.0139 & 0.168 & 0.062 & 0.504 & 0.185 & 0.000 \\
+M26 & M\_cosine\_rep & BxDxC & random & M\_cosine & none & replay & 1.0 & - & 0.5208 & 0.0156 & 0.131 & 0.070 & 0.000 & 0.000 & 0.394 \\
+M27 & piGram+FBM\_cur & combined & random & FBM\_l2 & pi\_gram & current & 1.0 & - & 0.5479 & 0.0620 & 0.037 & 0.015 & 0.004 & 0.006 & 0.106 \\
+M28 & vMFmix5+Fpi & vmf\_sweep & vMF mix K=5 & F\_l2 & pi\_gram & replay & 1.0 & - & 0.5552 & 0.0179 & 0.054 & 0.033 & 0.000 & 0.000 & 0.163 \\
+M29 & C4 smr pi & z\_sampling & SMR pi & none & none & none & - & 0.5 & 0.5921 & 0.0546 & 0.051 & 0.019 & 0.000 & 0.000 & 0.152 \\
+M30 & FB\_gram\_cur & BxDxC & random & FB\_gram & none & current & 1.0 & - & 0.8069 & 0.0267 & 0.003 & 0.005 & 0.010 & 0.015 & 0.000 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\vspace{6pt}
+{\footnotesize
+\textbf{Metrics:} mean\_d$_\text{avg}$ = mean final distance averaged over Q1, Q2, Q3 (lower is better);
+s10 = success rate at $r{<}0.10$ threshold;
+s10$_\text{Q1}$ (mem) = memory retention on first task after training all three;
+s10$_\text{Q3}$ (plas) = plasticity on most recent task.\\
+\textbf{Sweeps:} baseline = no distillation baselines;
+BxDxC = single distill target $\times$ loss $\times$ input;
+combined = $\pi$ + X joint distillation;
+z\_sampling = structured $z$-sampling methods;
+vmf\_sweep = vMF component count sweep;
+fdws\_sweep = FDWS temperature sweep.
+}
+
+\end{document}

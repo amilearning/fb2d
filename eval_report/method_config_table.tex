@@ -1,0 +1,189 @@
+\documentclass[8pt,landscape]{extarticle}
+\usepackage[margin=1cm,landscape]{geometry}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[T1]{fontenc}
+
+\definecolor{hdrblue}{RGB}{220,230,245}
+
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Method Configuration Table (105 Methods)}\\[4pt]
+{\small Shared parameters: $z_{\mathrm{dim}}=32$, hidden$=256$, lr$=10^{-4}$, batch$=512$, 60k steps/stage, Q1$\to$Q2$\to$Q3.}
+\end{center}
+
+\vspace{4pt}
+
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.05}
+
+\begin{longtable}{
+  l                  % M-ID
+  p{3.8cm}           % Display Name
+  l                  % z-sampling
+  l                  % Distill FB target
+  l                  % Distill pi
+  l                  % Distill input
+  c                  % K
+  c                  % tau
+}
+\caption{Configuration of each method. ``Distill FB'' is the FB-representation distillation target and loss;
+``Distill $\pi$'' is the actor-side distillation loss; ``Input'' is whether distillation uses current-task or replay data.
+Methods are grouped by sweep and sorted by M-ID within each group.}\\
+\toprule
+\textbf{M-ID} & \textbf{Display Name} & \textbf{$z$-sampling} & \textbf{Distill FB} & \textbf{Distill $\pi$} & \textbf{Input} & \textbf{$K$} & \textbf{$\tau$} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{M-ID} & \textbf{Display Name} & \textbf{$z$-sampling} & \textbf{Distill FB} & \textbf{Distill $\pi$} & \textbf{Input} & \textbf{$K$} & \textbf{$\tau$} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{8}{r}{\small\itshape Continued on next page\ldots}\\
+\endfoot
+\bottomrule
+\endlastfoot
+
+\midrule
+\multicolumn{8}{l}{\cellcolor{hdrblue}\textbf{Baseline}} \\
+\midrule
+M25 & taskincr\_z32 & random & none & none & none & - & - \\
+M89 & naive\_seq\_z32 & random & none & none & none & - & - \\
+\midrule
+\multicolumn{8}{l}{\cellcolor{hdrblue}\textbf{Single Distillation (sweep=distill)}} \\
+\midrule
+M30 & pi\_gram\_replay & random & none & gram & replay & - & - \\
+M32 & pi\_l2\_replay & random & none & l2 & replay & - & - \\
+M34 & pi\_cosine\_replay & random & none & cosine & replay & - & - \\
+M38 & pi\_contrastive\_replay & random & none & contrastive & replay & - & - \\
+M43 & FB\_l2\_replay & random & FB(l2) & none & replay & - & - \\
+M48 & F\_cosine\_current & random & F(cosine) & none & current & - & - \\
+M49 & F\_contrastive\_current & random & F(contrastive) & none & current & - & - \\
+M51 & B\_l2\_current & random & B(l2) & none & current & - & - \\
+M52 & B\_contrastive\_current & random & B(contrastive) & none & current & - & - \\
+M55 & F\_l2\_replay & random & F(l2) & none & replay & - & - \\
+M56 & M\_cosine\_replay & random & M(cosine) & none & replay & - & - \\
+M57 & pi\_gram\_current & random & none & gram & current & - & - \\
+M59 & Q\_contrastive\_current & random & Q(contrastive) & none & current & - & - \\
+M60 & B\_gram\_current & random & B(gram) & none & current & - & - \\
+M61 & B\_contrastive\_replay & random & B(contrastive) & none & replay & - & - \\
+M62 & M\_cosine\_current & random & M(cosine) & none & current & - & - \\
+M63 & B\_gram\_replay & random & B(gram) & none & replay & - & - \\
+M64 & M\_contrastive\_current & random & M(contrastive) & none & current & - & - \\
+M65 & F\_l2\_current & random & F(l2) & none & current & - & - \\
+M66 & B\_l2\_replay & random & B(l2) & none & replay & - & - \\
+M67 & Q\_l2\_replay & random & Q(l2) & none & replay & - & - \\
+M68 & B\_cosine\_replay & random & B(cosine) & none & replay & - & - \\
+M69 & pi\_l2\_current & random & none & l2 & current & - & - \\
+M70 & F\_cosine\_replay & random & F(cosine) & none & replay & - & - \\
+M72 & F\_contrastive\_replay & random & F(contrastive) & none & replay & - & - \\
+M73 & Q\_cosine\_replay & random & Q(cosine) & none & replay & - & - \\
+M74 & FB\_l2\_current & random & FB(l2) & none & current & - & - \\
+M75 & M\_contrastive\_replay & random & M(contrastive) & none & replay & - & - \\
+M77 & B\_cosine\_current & random & B(cosine) & none & current & - & - \\
+M79 & Q\_cosine\_current & random & Q(cosine) & none & current & - & - \\
+M80 & Q\_contrastive\_replay & random & Q(contrastive) & none & replay & - & - \\
+M81 & FB\_cosine\_current & random & FB(cosine) & none & current & - & - \\
+M84 & FB\_contrastive\_current & random & FB(contrastive) & none & current & - & - \\
+M90 & Q\_l2\_current & random & Q(l2) & none & current & - & - \\
+M91 & FB\_contrastive\_replay & random & FB(contrastive) & none & replay & - & - \\
+M92 & M\_l2\_replay & random & M(l2) & none & replay & - & - \\
+M93 & M\_l2\_current & random & M(l2) & none & current & - & - \\
+M94 & pi\_cosine\_current & random & none & cosine & current & - & - \\
+M95 & pi\_contrastive\_current & random & none & contrastive & current & - & - \\
+M97 & FB\_cosine\_replay & random & FB(cosine) & none & replay & - & - \\
+M98 & Q\_gram\_current & random & Q(gram) & none & current & - & - \\
+M99 & FB\_gram\_replay & random & FB(gram) & none & replay & - & - \\
+M100 & M\_gram\_current & random & M(gram) & none & current & - & - \\
+M101 & F\_gram\_replay & random & F(gram) & none & replay & - & - \\
+M102 & Q\_gram\_replay & random & Q(gram) & none & replay & - & - \\
+M103 & M\_gram\_replay & random & M(gram) & none & replay & - & - \\
+M104 & F\_gram\_current & random & F(gram) & none & current & - & - \\
+M105 & FB\_gram\_current & random & FB(gram) & none & current & - & - \\
+\midrule
+\multicolumn{8}{l}{\cellcolor{hdrblue}\textbf{Combined Distillation (sweep=distill\_combined)}} \\
+\midrule
+M2 & piGram\_B\_replay & random & B & gram & replay & - & - \\
+M14 & piL2\_FB\_replay & random & FB & l2 & replay & - & - \\
+M16 & piL2\_B\_replay & random & B & l2 & replay & - & - \\
+M17 & piGram\_FB\_replay & random & FB & gram & replay & - & - \\
+M22 & piGram\_FBM\_replay & random & FBM & gram & replay & - & - \\
+M23 & piL2\_M\_replay & random & M & l2 & replay & - & - \\
+M24 & piL2\_FBM\_replay & random & FBM & l2 & replay & - & - \\
+M28 & piGram\_B\_current & random & B & gram & current & - & - \\
+M29 & piGram\_M\_replay & random & M & gram & replay & - & - \\
+M31 & piL2\_Q\_current & random & Q & l2 & current & - & - \\
+M33 & piL2\_B\_current & random & B & l2 & current & - & - \\
+M35 & piGram\_FB\_current & random & FB & gram & current & - & - \\
+M36 & piL2\_F\_current & random & F & l2 & current & - & - \\
+M37 & piGram\_Q\_current & random & Q & gram & current & - & - \\
+M39 & piGram\_F\_current & random & F & gram & current & - & - \\
+M40 & piL2\_FB\_current & random & FB & l2 & current & - & - \\
+M42 & piGram\_Q\_replay & random & Q & gram & replay & - & - \\
+M44 & piL2\_Q\_replay & random & Q & l2 & replay & - & - \\
+M46 & piGram\_F\_replay & random & F & gram & replay & - & - \\
+M47 & piL2\_F\_replay & random & F & l2 & replay & - & - \\
+M50 & piL2\_M\_current & random & M & l2 & current & - & - \\
+M58 & piL2\_FBM\_current & random & FBM & l2 & current & - & - \\
+M76 & piGram\_M\_current & random & M & gram & current & - & - \\
+M96 & piGram\_FBM\_current & random & FBM & gram & current & - & - \\
+\midrule
+\multicolumn{8}{l}{\cellcolor{hdrblue}\textbf{$z$-Sampling Strategies (sweep=z\_sampling)}} \\
+\midrule
+M1 & FDWS-B$\equiv$FB+distill & FDWS & FB & gram & replay & - & - \\
+M3 & D10\_fdws\_piFB & FDWS & FB & l2 & replay & - & - \\
+M7 & B2\_vmf\_mix & vMF mix & FB & gram & replay & - & - \\
+M10 & D9\_fdws\_pi & FDWS & none & l2 & replay & - & - \\
+M12 & D6\_fdws\_F & FDWS & F & gram & replay & - & - \\
+M26 & B1\_vmf\_bind & vMF bind & FB & gram & replay & - & - \\
+M27 & SMR+distill & SMR & FB & gram & replay & - & - \\
+M53 & C6\_fdws\_F & FDWS & none & none & none & - & - \\
+M54 & A2\_vmf\_mix & vMF mix & none & none & none & - & - \\
+M71 & FDWS-B$\equiv$FB (no distill) & FDWS & none & none & none & - & - \\
+M78 & C1\_smr\_F & SMR & none & none & none & - & - \\
+M82 & C10\_fdws\_piFB & FDWS & FB & l2 & current & - & - \\
+M83 & C9\_fdws\_pi & FDWS & none & l2 & current & - & - \\
+M85 & C4\_smr\_pi & SMR & none & l2 & current & - & - \\
+M87 & A1\_vmf\_bind & vMF bind & none & none & none & - & - \\
+M88 & SMR (no distill) & SMR & none & none & none & - & - \\
+\midrule
+\multicolumn{8}{l}{\cellcolor{hdrblue}\textbf{vMF Mixture Sweep (sweep=vmf\_sweep)}} \\
+\midrule
+M11 & vmfMix20\_FBpi\_replay & vMF mix & FB & gram & replay & 20 & - \\
+M13 & vmfMix5\_Bpi\_replay & vMF mix & B & gram & replay & 5 & - \\
+M15 & vmfMix20\_Bpi\_replay & vMF mix & B & gram & replay & 20 & - \\
+M18 & vmfMix10\_Bpi\_replay & vMF mix & B & gram & replay & 10 & - \\
+M19 & vmfMix5\_FBpi\_replay & vMF mix & FB & gram & replay & 5 & - \\
+M20 & vmfMix10\_FBpi\_replay & vMF mix & FB & gram & replay & 10 & - \\
+M41 & vmfMix10\_Fpi\_replay & vMF mix & F & gram & replay & 10 & - \\
+M45 & vmfMix20\_Fpi\_replay & vMF mix & F & gram & replay & 20 & - \\
+M86 & vmfMix5\_Fpi\_replay & vMF mix & F & gram & replay & 5 & - \\
+\midrule
+\multicolumn{8}{l}{\cellcolor{hdrblue}\textbf{FDWS Sweep (sweep=fdws\_sweep)}} \\
+\midrule
+M4 & tau10\_sensReplay & FDWS & FB & gram & replay & - & 1.0 \\
+M5 & tau50\_sensCurrent & FDWS & FB & gram & current & - & 5.0 \\
+M6 & tau10\_sensCurrent & FDWS & FB & gram & current & - & 1.0 \\
+M8 & tau05\_sensCurrent & FDWS & FB & gram & current & - & 0.5 \\
+M9 & tau50\_sensReplay & FDWS & FB & gram & replay & - & 5.0 \\
+M21 & tau05\_sensReplay & FDWS & FB & gram & replay & - & 0.5 \\
+
+\end{longtable}
+
+\vspace{6pt}
+\noindent\textbf{Notes:}
+\begin{itemize}\setlength{\itemsep}{0pt}
+\item Methods are ranked M1 (best) to M105 (worst) by the overall performance metric (average of mean\_d across Q1 and Q3).
+\item \textbf{Deduplication:} Configs that produced identical training runs (same hyperparameters, differing only in directory naming) were merged prior to ID assignment. Specifically, z\_sampling group C/D configs with FDWS or SMR that overlap with fdws\_sweep entries were kept as separate M-IDs because they used different default distillation settings.
+\item For the \texttt{distill} sweep, the FB-target column shows the target network component and loss function in parentheses, e.g.\ ``B(l2)'' means the backward representation $B$ is distilled with L2 loss.
+\item For the \texttt{z\_sampling} sweep: Group A = vMF without distillation; Group B = vMF with distillation; Group C = sensitivity-based without distillation; Group D = sensitivity-based with distillation.
+\item $K$ is the number of vMF mixture components (only relevant for vmf\_sweep). $\tau$ is the FDWS temperature (only relevant for fdws\_sweep).
+\end{itemize}
+
+\end{document}

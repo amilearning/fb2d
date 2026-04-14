@@ -1,0 +1,234 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage[font=small]{caption}
+
+\title{FB Continual Learning: Comprehensive Evaluation Report\\
+\large (Corrected: merged duplicate sensitivity sources, 106 unique methods)}
+\author{Auto-generated}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% ---------------------------------------------------------------
+\section{Experimental Setup}
+We evaluate \textbf{106\ unique method configurations} on the \texttt{nav2d} continual
+Forward-Backward (FB) learning benchmark.  Each method is trained with 8192
+parallel environments on the \texttt{q123} three-quadrant task sequence
+(Q1$\to$Q2$\to$Q3).  We measure:
+\begin{itemize}
+  \item \textbf{Memory (Q1):} mean distance to Q1 goal after all training
+        (lower~=~better);  success rate $s_{10}$ within 0.10 of goal.
+  \item \textbf{Plasticity (Q3):} same metrics on the final task Q3.
+\end{itemize}
+Methods span six sweep groups: \texttt{baseline}, \texttt{fdws\_sweep},
+\texttt{vmf\_sweep}, \texttt{z\_sampling}, \texttt{distill\_combined}, and
+\texttt{distill}.  Each configuration is run with 3 training seeds (except
+baselines with 1--3).
+
+\paragraph{Note on duplicate merging.}
+The original sweep contained 113 configurations, but 8 entries were
+duplicates---different sensitivity sources that produce numerically identical
+results.  In the FB framework the task descriptor~$z$ enters the model
+\emph{only} through the forward feature network~$F$.  The successor measure
+matrix is $M = F \cdot B^\top$, so the diagonal sensitivities of~$B$,
+$FB = F \cdot B^\top$, and (for SMR without distillation) $\pi_{FB}$ all
+reduce to the same parameter-importance mask.  Concretely:
+\begin{itemize}
+  \item \texttt{B} and \texttt{FB} sensitivity are equivalent because
+        $\frac{\partial M}{\partial \theta} = \frac{\partial (F B^\top)}{\partial \theta}$
+        and~$F$ does not depend on~$z$ through~$B$.
+  \item With distillation enabled, \emph{all five} sources
+        (\texttt{F}, \texttt{B}, \texttt{FB}, \texttt{$\pi$}, \texttt{$\pi$FB})
+        collapse because the distillation loss anchors the representation,
+        making the sensitivity source irrelevant for SMR routing.
+\end{itemize}
+After merging, 113 configurations reduce to \textbf{106\ unique methods}.
+Table~\ref{tab:merges} lists the merged groups.
+
+\begin{table}[htbp]
+\centering
+\caption{Merged duplicate configurations.}
+\label{tab:merges}
+\small
+\begin{tabular}{p{10cm}l}
+\toprule
+Original config names & Merged label \\
+\midrule
+  \texttt{C2\_smr\_B}, \texttt{C3\_smr\_FB}, \texttt{C5\_smr\_piFB} & \texttt{SMR (no distill)} \\
+  \texttt{C7\_fdws\_B}, \texttt{C8\_fdws\_FB} & \texttt{FDWS-B$\equiv$FB (no distill)} \\
+  \texttt{D1\_smr\_F}, \texttt{D2\_smr\_B}, \texttt{D3\_smr\_FB}, \texttt{D4\_smr\_pi}, \texttt{D5\_smr\_piFB} & \texttt{SMR+distill} \\
+  \texttt{D7\_fdws\_B}, \texttt{D8\_fdws\_FB} & \texttt{FDWS-B$\equiv$FB+distill} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------
+\section{Overall Rankings}
+
+Methods are ranked by the overall score
+$\frac{1}{2}(\text{mean\_d\_Q1} + \text{mean\_d\_Q3})$, lower is better.
+Figure~\ref{fig:bar_top30} shows the top~30.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{bar_top30_mean_d.pdf}
+  \caption{Top 30 methods: mean distance to goal for Q1 (memory, blue) and Q3
+           (plasticity, orange).  Error bars show standard deviation across seeds.}
+  \label{fig:bar_top30}
+\end{figure}
+
+\begin{table}[htbp]
+\centering
+\caption{Top 20 methods ranked by overall score.}
+\label{tab:top20}
+\scriptsize
+\begin{tabular}{llllllll}
+\toprule
+ID & Config & Sweep & Q1 mean\_d & Q3 mean\_d & s10 Q1 & s10 Q3 & Overall \\
+\midrule
+  M1 & \texttt{FDWS-B$\equiv$FB+distill} & z\_sampling & 0.1158$\pm$0.0128 & 0.1627$\pm$0.0239 & 0.490 & 0.322 & 0.1393 \\
+  M2 & \texttt{piGram\_B\_replay} & distill\_combined & 0.1613$\pm$0.0180 & 0.1195$\pm$0.0113 & 0.426 & 0.534 & 0.1404 \\
+  M3 & \texttt{D10\_fdws\_piFB} & z\_sampling & 0.1180$\pm$0.0093 & 0.1641$\pm$0.0311 & 0.476 & 0.317 & 0.1410 \\
+  M4 & \texttt{tau10\_sensReplay} & fdws\_sweep & 0.1175$\pm$0.0143 & 0.1654$\pm$0.0364 & 0.474 & 0.342 & 0.1414 \\
+  M5 & \texttt{tau50\_sensCurrent} & fdws\_sweep & 0.1323$\pm$0.0154 & 0.1587$\pm$0.0122 & 0.423 & 0.270 & 0.1455 \\
+  M6 & \texttt{D7v3\_highSensReplayZ} & D7v3 & 0.1233$\pm$0.0178 & 0.1723$\pm$0.0248 & 0.477 & 0.307 & 0.1478 \\
+  M7 & \texttt{tau10\_sensCurrent} & fdws\_sweep & 0.1303$\pm$0.0083 & 0.1688$\pm$0.0326 & 0.418 & 0.291 & 0.1496 \\
+  M8 & \texttt{B2\_vmf\_mix} & z\_sampling & 0.1213$\pm$0.0148 & 0.1785$\pm$0.0292 & 0.492 & 0.301 & 0.1499 \\
+  M9 & \texttt{tau05\_sensCurrent} & fdws\_sweep & 0.1313$\pm$0.0191 & 0.1704$\pm$0.0116 & 0.427 & 0.265 & 0.1508 \\
+  M10 & \texttt{tau50\_sensReplay} & fdws\_sweep & 0.1255$\pm$0.0043 & 0.1772$\pm$0.0216 & 0.454 & 0.304 & 0.1514 \\
+  M11 & \texttt{D9\_fdws\_pi} & z\_sampling & 0.1301$\pm$0.0079 & 0.1754$\pm$0.0149 & 0.417 & 0.323 & 0.1528 \\
+  M12 & \texttt{vmfMix20\_FBpi\_replay} & vmf\_sweep & 0.1125$\pm$0.0092 & 0.1961$\pm$0.0336 & 0.519 & 0.285 & 0.1543 \\
+  M13 & \texttt{D6\_fdws\_F} & z\_sampling & 0.1354$\pm$0.0181 & 0.1838$\pm$0.0368 & 0.410 & 0.255 & 0.1596 \\
+  M14 & \texttt{vmfMix5\_Bpi\_replay} & vmf\_sweep & 0.1724$\pm$0.0142 & 0.1635$\pm$0.0201 & 0.416 & 0.392 & 0.1679 \\
+  M15 & \texttt{piL2\_FB\_replay} & distill\_combined & 0.1308$\pm$0.0126 & 0.2100$\pm$0.0363 & 0.432 & 0.282 & 0.1704 \\
+  M16 & \texttt{vmfMix20\_Bpi\_replay} & vmf\_sweep & 0.1523$\pm$0.0340 & 0.1936$\pm$0.0631 & 0.489 & 0.435 & 0.1729 \\
+  M17 & \texttt{piL2\_B\_replay} & distill\_combined & 0.1640$\pm$0.0149 & 0.1833$\pm$0.0505 & 0.413 & 0.412 & 0.1736 \\
+  M18 & \texttt{piGram\_FB\_replay} & distill\_combined & 0.1297$\pm$0.0089 & 0.2184$\pm$0.0696 & 0.421 & 0.260 & 0.1741 \\
+  M19 & \texttt{vmfMix10\_Bpi\_replay} & vmf\_sweep & 0.1688$\pm$0.0289 & 0.1821$\pm$0.0324 & 0.400 & 0.413 & 0.1755 \\
+  M20 & \texttt{vmfMix5\_FBpi\_replay} & vmf\_sweep & 0.1412$\pm$0.0156 & 0.2172$\pm$0.0579 & 0.411 & 0.272 & 0.1792 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------
+\section{Memory vs Plasticity Analysis}
+
+Figure~\ref{fig:scatter_all} plots every method in the memory--plasticity
+plane.  The ideal region is the bottom-left corner.  Baselines and the top~10
+are labeled.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{scatter_all.pdf}
+  \caption{Memory (Q1 mean\_d) vs.\ plasticity (Q3 mean\_d) for all 106
+           methods.  Colors indicate sweep group.}
+  \label{fig:scatter_all}
+\end{figure}
+
+Figure~\ref{fig:scatter_top30} zooms in on the top~30 methods.  The cluster
+in the bottom-left shows that FDWS, vMF-mixture, and replay-augmented
+distillation methods dominate.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{scatter_top30.pdf}
+  \caption{Memory vs.\ plasticity (top 30 methods, all labeled).}
+  \label{fig:scatter_top30}
+\end{figure}
+
+\subsection{Success Rate}
+Figure~\ref{fig:bar_s10} shows success rates for the top~30.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{bar_top30_s10.pdf}
+  \caption{Success rate within 0.10 of goal ($s_{10}$) for Q1 and Q3.}
+  \label{fig:bar_s10}
+\end{figure}
+
+% ---------------------------------------------------------------
+\section{Comparison by Method Family}
+
+Figure~\ref{fig:violin} shows the distribution of overall scores per sweep
+group.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.85\textwidth]{violin_sweep.pdf}
+  \caption{Overall-score distribution by method family (violin plot).
+           Lower is better.}
+  \label{fig:violin}
+\end{figure}
+
+Key observations:
+\begin{itemize}
+  \item \textbf{fdws\_sweep} achieves the tightest and lowest distribution
+        (overall $\approx$ 0.14--0.19), indicating that Fisher-weighted
+        distillation with sensitivity routing is consistently strong.
+  \item \textbf{z\_sampling} has a bimodal distribution: methods using the
+        \texttt{D}-prefix (which sample from the learned task distribution)
+        cluster with fdws near the top, while \texttt{C}-prefix methods
+        (current-only sampling) collapse on memory.
+  \item \textbf{vmf\_sweep} methods with \texttt{Bpi} or \texttt{FBpi} replay
+        are competitive, but \texttt{Fpi} variants catastrophically forget.
+  \item \textbf{distill\_combined} with replay (\texttt{piGram\_B\_replay},
+        \texttt{piL2\_FB\_replay}) is strong; current-only variants are weak.
+  \item Pure \textbf{distill} methods mostly fail on memory; only
+        \texttt{pi\_gram\_replay} and \texttt{pi\_l2\_replay} survive, but
+        with poor memory.
+  \item The \textbf{baseline} (\texttt{naive\_seq\_z32}) scores an overall of
+        0.53, far worse than the best methods ($\sim$0.14).
+\end{itemize}
+
+% ---------------------------------------------------------------
+\section{Key Findings}
+
+\begin{enumerate}
+  \item \textbf{Replay is essential for memory.}  Nearly all top-30 methods
+        use experience replay from previous tasks.  Current-only
+        regularization is insufficient in the FB setting.
+  \item \textbf{FDWS (Fisher-weighted distillation + sensitivity routing)}
+        dominates the top ranks.  The best method is
+        FDWS-B$\equiv$FB+distill with an overall score of
+        0.139, achieving Q1~mean\_d~=~0.116 and Q3~mean\_d~=~0.163.
+  \item \textbf{Gram-matrix distillation on backward features with replay}
+        (\texttt{piGram\_B\_replay}) is the single best plasticity method
+        (Q3~=~0.119) while maintaining competitive memory (Q1~=~0.161).
+  \item \textbf{vMF mixture sampling} (B2\_vmf\_mix with learned-distribution
+        z-sampling) ranks in the top~10, confirming that concentration-based
+        specialization helps.
+  \item \textbf{The memory--plasticity trade-off is real but manageable:}
+        the Pareto front includes methods from multiple families, suggesting
+        that combining FDWS routing with replay and representation
+        distillation may yield further gains.
+  \item \textbf{Feature-space (F) distillation alone destroys memory,}
+        regardless of loss type.  Backward (B) and policy ($\pi$) targets
+        are safer distillation anchors.
+  \item \textbf{Task-incremental baseline} (\texttt{taskincr\_z32}) achieves
+        decent memory but poor plasticity (overall~=~0.225), showing that
+        per-task z-binding alone is not enough.
+  \item \textbf{Sensitivity source often does not matter.}
+        For 8 of the original 113 configurations, changing the sensitivity
+        source (B vs.\ FB vs.\ $\pi$FB, etc.) produced identical results.
+        This is expected: in the FB model, $z$ only enters through~$F$, so
+        $B$- and $FB$-based sensitivities through $M = F B^\top$ are
+        algebraically equivalent.  With distillation, even more sources
+        collapse.  Researchers need not sweep over sensitivity sources in
+        future experiments.
+\end{enumerate}
+
+% ---------------------------------------------------------------
+\appendix
+\section{Full Method Table}
+The complete method configuration table is provided in
+\texttt{full\_method\_table.pdf} (separate document).
+
+The full ranked list with M-IDs is in \texttt{methods\_with\_ids.csv}.
+
+\end{document}

@@ -1,0 +1,184 @@
+\documentclass[8pt,landscape]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[landscape,left=1cm,right=1cm,top=1.5cm,bottom=1.5cm]{geometry}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{array}
+
+\definecolor{sectionbg}{RGB}{200,210,230}
+
+\pagestyle{plain}
+
+\begin{document}
+
+\begin{center}
+{\Large\bfseries Complete Method Configuration Table --- FB Continual Learning}\\[4pt]
+{\small Shared: $z_\text{dim}=32$, hidden$=256$, lr$=10^{-4}$, batch$=512$, 60k updates/stage, Q1$\to$Q2$\to$Q3, 3 seeds each}
+\end{center}
+
+\vspace{6pt}
+
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\begin{longtable}{r l l l l >{\centering\arraybackslash}p{1cm} >{\centering\arraybackslash}p{1cm} >{\centering\arraybackslash}p{1cm} >{\centering\arraybackslash}p{1cm}}
+\toprule
+\textbf{ID} & \textbf{Label} & \textbf{z-sampling} & \textbf{Distill Target} & \textbf{Distill Input} & \textbf{K} & \textbf{EMA} & \textbf{$\tau$} & \textbf{$\alpha$} \\
+\midrule
+\endfirsthead
+
+\toprule
+\textbf{ID} & \textbf{Label} & \textbf{z-sampling} & \textbf{Distill Target} & \textbf{Distill Input} & \textbf{K} & \textbf{EMA} & \textbf{$\tau$} & \textbf{$\alpha$} \\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{9}{r}{\textit{Continued on next page\ldots}} \\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+\rowcolor{sectionbg}
+\multicolumn{9}{l}{\textbf{Baselines}} \\
+\midrule
+M1 & Naive Sequential & random & --- & --- & --- & --- & --- & --- \\
+M2 & Cumulative (task-incr.) & random & --- & --- & --- & --- & --- & --- \\
+\addlinespace[3pt]
+\rowcolor{sectionbg}
+\multicolumn{9}{l}{\textbf{B$\times$C$\times$D Standalone Distillation (48 configs)}} \\
+\midrule
+M3 & B\_contrastive\_current & random & B(contrastive) & current & --- & --- & --- & 1.0 \\
+M4 & B\_contrastive\_replay & random & B(contrastive) & replay & --- & --- & --- & 1.0 \\
+M5 & B\_cosine\_current & random & B(cosine) & current & --- & --- & --- & 1.0 \\
+M6 & B\_cosine\_replay & random & B(cosine) & replay & --- & --- & --- & 1.0 \\
+M7 & B\_gram\_current & random & B(gram) & current & --- & --- & --- & 1.0 \\
+M8 & B\_gram\_replay & random & B(gram) & replay & --- & --- & --- & 1.0 \\
+M9 & B\_l2\_current & random & B(l2) & current & --- & --- & --- & 1.0 \\
+M10 & B\_l2\_replay & random & B(l2) & replay & --- & --- & --- & 1.0 \\
+M11 & FB\_contrastive\_current & random & FB(contrastive) & current & --- & --- & --- & 1.0 \\
+M12 & FB\_contrastive\_replay & random & FB(contrastive) & replay & --- & --- & --- & 1.0 \\
+M13 & FB\_cosine\_current & random & FB(cosine) & current & --- & --- & --- & 1.0 \\
+M14 & FB\_cosine\_replay & random & FB(cosine) & replay & --- & --- & --- & 1.0 \\
+M15 & FB\_gram\_current & random & FB(gram) & current & --- & --- & --- & 1.0 \\
+M16 & FB\_gram\_replay & random & FB(gram) & replay & --- & --- & --- & 1.0 \\
+M17 & FB\_l2\_current & random & FB(l2) & current & --- & --- & --- & 1.0 \\
+M18 & FB\_l2\_replay & random & FB(l2) & replay & --- & --- & --- & 1.0 \\
+M19 & F\_contrastive\_current & random & F(contrastive) & current & --- & --- & --- & 1.0 \\
+M20 & F\_contrastive\_replay & random & F(contrastive) & replay & --- & --- & --- & 1.0 \\
+M21 & F\_cosine\_current & random & F(cosine) & current & --- & --- & --- & 1.0 \\
+M22 & F\_cosine\_replay & random & F(cosine) & replay & --- & --- & --- & 1.0 \\
+M23 & F\_gram\_current & random & F(gram) & current & --- & --- & --- & 1.0 \\
+M24 & F\_gram\_replay & random & F(gram) & replay & --- & --- & --- & 1.0 \\
+M25 & F\_l2\_current & random & F(l2) & current & --- & --- & --- & 1.0 \\
+M26 & F\_l2\_replay & random & F(l2) & replay & --- & --- & --- & 1.0 \\
+M27 & M\_contrastive\_current & random & M(contrastive) & current & --- & --- & --- & 1.0 \\
+M28 & M\_contrastive\_replay & random & M(contrastive) & replay & --- & --- & --- & 1.0 \\
+M29 & M\_cosine\_current & random & M(cosine) & current & --- & --- & --- & 1.0 \\
+M30 & M\_cosine\_replay & random & M(cosine) & replay & --- & --- & --- & 1.0 \\
+M31 & M\_gram\_current & random & M(gram) & current & --- & --- & --- & 1.0 \\
+M32 & M\_gram\_replay & random & M(gram) & replay & --- & --- & --- & 1.0 \\
+M33 & M\_l2\_current & random & M(l2) & current & --- & --- & --- & 1.0 \\
+M34 & M\_l2\_replay & random & M(l2) & replay & --- & --- & --- & 1.0 \\
+M35 & Q\_contrastive\_current & random & Q(contrastive) & current & --- & --- & --- & 1.0 \\
+M36 & Q\_contrastive\_replay & random & Q(contrastive) & replay & --- & --- & --- & 1.0 \\
+M37 & Q\_cosine\_current & random & Q(cosine) & current & --- & --- & --- & 1.0 \\
+M38 & Q\_cosine\_replay & random & Q(cosine) & replay & --- & --- & --- & 1.0 \\
+M39 & Q\_gram\_current & random & Q(gram) & current & --- & --- & --- & 1.0 \\
+M40 & Q\_gram\_replay & random & Q(gram) & replay & --- & --- & --- & 1.0 \\
+M41 & Q\_l2\_current & random & Q(l2) & current & --- & --- & --- & 1.0 \\
+M42 & Q\_l2\_replay & random & Q(l2) & replay & --- & --- & --- & 1.0 \\
+M43 & pi\_contrastive\_current & random & pi(contrastive) & current & --- & --- & --- & 1.0 \\
+M44 & pi\_contrastive\_replay & random & pi(contrastive) & replay & --- & --- & --- & 1.0 \\
+M45 & pi\_cosine\_current & random & pi(cosine) & current & --- & --- & --- & 1.0 \\
+M46 & pi\_cosine\_replay & random & pi(cosine) & replay & --- & --- & --- & 1.0 \\
+M47 & pi\_gram\_current & random & pi(gram) & current & --- & --- & --- & 1.0 \\
+M48 & pi\_gram\_replay & random & pi(gram) & replay & --- & --- & --- & 1.0 \\
+M49 & pi\_l2\_current & random & pi(l2) & current & --- & --- & --- & 1.0 \\
+M50 & pi\_l2\_replay & random & pi(l2) & replay & --- & --- & --- & 1.0 \\
+\addlinespace[3pt]
+\rowcolor{sectionbg}
+\multicolumn{9}{l}{\textbf{Combined $\pi$+X Joint Distillation (24 configs)}} \\
+\midrule
+M51 & piGram\_B\_current & random & pi(gram)+B(l2) & current & --- & --- & --- & 1.0 \\
+M52 & piGram\_B\_replay & random & pi(gram)+B(l2) & replay & --- & --- & --- & 1.0 \\
+M53 & piGram\_FBM\_current & random & pi(gram)+FBM(l2) & current & --- & --- & --- & 1.0 \\
+M54 & piGram\_FBM\_replay & random & pi(gram)+FBM(l2) & replay & --- & --- & --- & 1.0 \\
+M55 & piGram\_FB\_current & random & pi(gram)+FB(l2) & current & --- & --- & --- & 1.0 \\
+M56 & piGram\_FB\_replay & random & pi(gram)+FB(l2) & replay & --- & --- & --- & 1.0 \\
+M57 & piGram\_F\_current & random & pi(gram)+F(l2) & current & --- & --- & --- & 1.0 \\
+M58 & piGram\_F\_replay & random & pi(gram)+F(l2) & replay & --- & --- & --- & 1.0 \\
+M59 & piGram\_M\_current & random & pi(gram)+M(l2) & current & --- & --- & --- & 1.0 \\
+M60 & piGram\_M\_replay & random & pi(gram)+M(l2) & replay & --- & --- & --- & 1.0 \\
+M61 & piGram\_Q\_current & random & pi(gram)+Q(l2) & current & --- & --- & --- & 1.0 \\
+M62 & piGram\_Q\_replay & random & pi(gram)+Q(l2) & replay & --- & --- & --- & 1.0 \\
+M63 & piL2\_B\_current & random & pi(l2)+B(l2) & current & --- & --- & --- & 1.0 \\
+M64 & piL2\_B\_replay & random & pi(l2)+B(l2) & replay & --- & --- & --- & 1.0 \\
+M65 & piL2\_FBM\_current & random & pi(l2)+FBM(l2) & current & --- & --- & --- & 1.0 \\
+M66 & piL2\_FBM\_replay & random & pi(l2)+FBM(l2) & replay & --- & --- & --- & 1.0 \\
+M67 & piL2\_FB\_current & random & pi(l2)+FB(l2) & current & --- & --- & --- & 1.0 \\
+M68 & piL2\_FB\_replay & random & pi(l2)+FB(l2) & replay & --- & --- & --- & 1.0 \\
+M69 & piL2\_F\_current & random & pi(l2)+F(l2) & current & --- & --- & --- & 1.0 \\
+M70 & piL2\_F\_replay & random & pi(l2)+F(l2) & replay & --- & --- & --- & 1.0 \\
+M71 & piL2\_M\_current & random & pi(l2)+M(l2) & current & --- & --- & --- & 1.0 \\
+M72 & piL2\_M\_replay & random & pi(l2)+M(l2) & replay & --- & --- & --- & 1.0 \\
+M73 & piL2\_Q\_current & random & pi(l2)+Q(l2) & current & --- & --- & --- & 1.0 \\
+M74 & piL2\_Q\_replay & random & pi(l2)+Q(l2) & replay & --- & --- & --- & 1.0 \\
+\addlinespace[3pt]
+\rowcolor{sectionbg}
+\multicolumn{9}{l}{\textbf{Z-Sampling Methods (24 configs)}} \\
+\midrule
+M75 & A1\_vmf\_bind & vMF-bind & --- & --- & 3 & 0.5 & --- & --- \\
+M76 & A2\_vmf\_mix & vMF-mix & --- & --- & 3 & 0.5 & --- & --- \\
+M77 & B1\_vmf\_bind & vMF-bind & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M78 & B2\_vmf\_mix & vMF-mix & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M79 & C10\_fdws\_piFB & FDWS(piFB) & --- & --- & 3 & 0.5 & --- & --- \\
+M80 & C1\_smr\_F & SMR(F) & --- & --- & 3 & 0.5 & --- & --- \\
+M81 & C2\_smr\_B & SMR(B) & --- & --- & 3 & 0.5 & --- & --- \\
+M82 & C3\_smr\_FB & SMR(FB) & --- & --- & 3 & 0.5 & --- & --- \\
+M83 & C4\_smr\_pi & SMR(pi) & --- & --- & 3 & 0.5 & --- & --- \\
+M84 & C5\_smr\_piFB & SMR(piFB) & --- & --- & 3 & 0.5 & --- & --- \\
+M85 & C6\_fdws\_F & FDWS(F) & --- & --- & 3 & 0.5 & --- & --- \\
+M86 & C7\_fdws\_B & FDWS(B) & --- & --- & 3 & 0.5 & --- & --- \\
+M87 & C8\_fdws\_FB & FDWS(FB) & --- & --- & 3 & 0.5 & --- & --- \\
+M88 & C9\_fdws\_pi & FDWS(pi) & --- & --- & 3 & 0.5 & --- & --- \\
+M89 & D10\_fdws\_piFB & FDWS(piFB) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M90 & D1\_smr\_F & SMR(F) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M91 & D2\_smr\_B & SMR(B) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M92 & D3\_smr\_FB & SMR(FB) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M93 & D4\_smr\_pi & SMR(pi) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M94 & D5\_smr\_piFB & SMR(piFB) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M95 & D6\_fdws\_F & FDWS(F) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M96 & D7\_fdws\_B & FDWS(B) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M97 & D8\_fdws\_FB & FDWS(FB) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+M98 & D9\_fdws\_pi & FDWS(pi) & pi(gram)+FB(l2) & replay & 3 & 0.5 & --- & 1.0 \\
+\addlinespace[3pt]
+\rowcolor{sectionbg}
+\multicolumn{9}{l}{\textbf{vMF Component Count Sweep (9 configs)}} \\
+\midrule
+M99 & vmfMix10\_Bpi\_replay & vMF-mix & pi(gram)+B(l2) & replay & 10 & --- & --- & 1.0 \\
+M100 & vmfMix10\_FBpi\_replay & vMF-mix & pi(gram)+FB(l2) & replay & 10 & --- & --- & 1.0 \\
+M101 & vmfMix10\_Fpi\_replay & vMF-mix & pi(gram)+F(l2) & replay & 10 & --- & --- & 1.0 \\
+M102 & vmfMix20\_Bpi\_replay & vMF-mix & pi(gram)+B(l2) & replay & 20 & --- & --- & 1.0 \\
+M103 & vmfMix20\_FBpi\_replay & vMF-mix & pi(gram)+FB(l2) & replay & 20 & --- & --- & 1.0 \\
+M104 & vmfMix20\_Fpi\_replay & vMF-mix & pi(gram)+F(l2) & replay & 20 & --- & --- & 1.0 \\
+M105 & vmfMix5\_Bpi\_replay & vMF-mix & pi(gram)+B(l2) & replay & 5 & --- & --- & 1.0 \\
+M106 & vmfMix5\_FBpi\_replay & vMF-mix & pi(gram)+FB(l2) & replay & 5 & --- & --- & 1.0 \\
+M107 & vmfMix5\_Fpi\_replay & vMF-mix & pi(gram)+F(l2) & replay & 5 & --- & --- & 1.0 \\
+\addlinespace[3pt]
+\rowcolor{sectionbg}
+\multicolumn{9}{l}{\textbf{FDWS Temperature $\tau$ Sweep (6 configs)}} \\
+\midrule
+M108 & tau05\_sensCurrent & FDWS(FB) & pi(gram)+FB(l2) & current & --- & --- & 0.5 & 1.0 \\
+M109 & tau05\_sensReplay & FDWS(FB) & pi(gram)+FB(l2) & replay & --- & --- & 0.5 & 1.0 \\
+M110 & tau10\_sensCurrent & FDWS(FB) & pi(gram)+FB(l2) & current & --- & --- & 1.0 & 1.0 \\
+M111 & tau10\_sensReplay & FDWS(FB) & pi(gram)+FB(l2) & replay & --- & --- & 1.0 & 1.0 \\
+M112 & tau50\_sensCurrent & FDWS(FB) & pi(gram)+FB(l2) & current & --- & --- & 5.0 & 1.0 \\
+M113 & tau50\_sensReplay & FDWS(FB) & pi(gram)+FB(l2) & replay & --- & --- & 5.0 & 1.0 \\
+\addlinespace[3pt]
+
+\end{longtable}
+
+\end{document}
