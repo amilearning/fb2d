@@ -1,0 +1,509 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1.8cm,landscape]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{float}
+
+\hypersetup{colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue}
+
+\title{Forward-Backward Continual Learning:\\Comprehensive Experimental Report}
+\author{FB Continual Learning Research}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+%% =====================================================================
+\section{Introduction \& Task Description}
+%% =====================================================================
+
+This report presents a comprehensive evaluation of \textbf{110} method configurations
+for continual learning with Forward-Backward (FB) representation learning on the
+\textbf{Nav2D QuadDyn} testbed.
+
+\subsection{Nav2D QuadDyn Environment}
+The environment is a 2D continuous navigation task on $[-1,1]^2$ divided into four quadrants,
+each with distinct dynamics:
+\begin{itemize}
+    \item \textbf{Quadrant dynamics:} In each quadrant, the sign of the action components is flipped
+    according to: $s_x = +1$ if $x \geq 0$, else $-1$; $s_y = +1$ if $y \geq 0$, else $-1$.
+    The effective action is $(s_x a_x, s_y a_y)$, creating per-quadrant dynamics
+    that require different policies.
+    \item \textbf{Transition:} $\mathbf{s}_{t+1} = \mathbf{s}_t + v_{\max} \cdot \text{diag}(s_x, s_y) \cdot \mathbf{a}_t$
+    with $v_{\max} = 0.05$ and clipping to $[-1,1]^2$.
+    \item \textbf{Goal-conditioned:} The agent must reach arbitrary goal positions using
+    the FB zero-shot mechanism: $z$ is inferred from the backward representation $B(s)$
+    weighted by goal proximity.
+\end{itemize}
+
+\subsection{Continual Training Protocol: q123}
+Training proceeds in three sequential stages:
+\begin{enumerate}
+    \item \textbf{Stage 1:} Train on Q1 data (offline batch from quadrant 1)
+    \item \textbf{Stage 2:} Train on Q2 data (quadrant 2)
+    \item \textbf{Stage 3:} Train on Q3 data (quadrant 3)
+\end{enumerate}
+Evaluation measures:
+\begin{itemize}
+    \item \textbf{Q1 performance (Memory):} How well the agent retains Q1 goal-reaching after training on Q2 and Q3.
+    Lower \texttt{mean\_d\_Q1} $=$ better memory.
+    \item \textbf{Q3 performance (Plasticity):} How well the agent learns the final task.
+    Lower \texttt{mean\_d\_Q3} $=$ better plasticity.
+    \item \textbf{Overall:} $(\texttt{mean\_d\_Q1} + \texttt{mean\_d\_Q3}) / 2$.
+    \item \textbf{Success rate (s10):} Fraction of 8192 eval episodes where final distance $< 0.10$.
+\end{itemize}
+
+%% =====================================================================
+\section{Experimental Setup}
+%% =====================================================================
+
+\subsection{Shared Parameters}
+All methods share:
+\begin{itemize}
+    \item $z_{\text{dim}} = 32$, hidden\_dim $= 256$, learning rate $= 10^{-4}$
+    \item 60{,}000 gradient updates per stage, batch size 512
+    \item 3 training seeds per configuration (except naive baseline: 1 seed)
+    \item Evaluation: 8192 parallel environments, 200 steps, seed 42
+\end{itemize}
+
+\subsection{4-Axis Design Space}
+Methods vary along four axes:
+\begin{enumerate}
+    \item[\textbf{B:}] \textbf{Distillation target} --- which network components are distilled
+    (F, B, FB, pi, M=FB, Q=critic, combinations thereof)
+    \item[\textbf{C:}] \textbf{Distillation loss} --- L2, Gram, cosine, contrastive
+    \item[\textbf{D:}] \textbf{Distillation source} --- current-batch vs.\ replay-buffer distillation
+    \item[\textbf{E:}] \textbf{z-sampling strategy} --- uniform, vMF mixture, SMR (successor measure routing),
+    FDWS (Fisher-Distance Weighted Sampling), combined vMF+FDWS
+\end{enumerate}
+
+\subsection{Sweep Structure}
+\begin{itemize}
+    \item \texttt{distill}: Single-target distillation (B$\times$C$\times$D)
+    \item \texttt{distill\_combined}: Multi-target pi+X distillation with replay
+    \item \texttt{z\_sampling}: z-sampling strategies (A/B series = binding/no-binding, C/D series = with/without distillation)
+    \item \texttt{fdws\_sweep}: FDWS temperature and sensitivity source variations
+    \item \texttt{vmf\_sweep}: vMF mixture component count and target sweeps
+    \item \texttt{vmf\_fdws\_combined}: Combined vMF20 + FDWS (fixed and optimized temperature)
+\end{itemize}
+
+%% =====================================================================
+\section{Method Overview}
+%% =====================================================================
+
+Table~\ref{tab:all_methods} lists all 110 evaluated method configurations,
+sorted by overall score (lower is better).
+
+\begin{small}
+\begin{longtable}{llp{3cm}rrrrrr}
+\caption{All 110 methods sorted by overall score. Columns: mean\_d = mean final distance to goal, s10 = success rate (fraction within 0.10), overall = (Q1+Q3)/2.}
+\label{tab:all_methods} \\
+\toprule
+M-ID & Config Name & Category & Q1 mean\_d & Q1 s10 & Q3 mean\_d & Q3 s10 & Overall \\
+\midrule
+\endfirsthead
+\toprule
+M-ID & Config Name & Category & Q1 mean\_d & Q1 s10 & Q3 mean\_d & Q3 s10 & Overall \\
+\midrule
+\endhead
+\midrule
+\multicolumn{8}{r}{\textit{Continued on next page}} \\
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+    M1 & D7\_fdws\_B & FDWS z-sampling & 0.1158 & 0.490 & 0.1627 & 0.322 & 0.1393 \\
+    M2 & piGram\_B\_replay & Distill combined & 0.1613 & 0.426 & 0.1195 & 0.534 & 0.1404 \\
+    M3 & D10\_fdws\_piFB & FDWS z-sampling & 0.1180 & 0.476 & 0.1641 & 0.317 & 0.1410 \\
+    M4 & tau10\_sensReplay & FDWS sweep & 0.1175 & 0.474 & 0.1654 & 0.342 & 0.1414 \\
+    M5 & tau50\_sensCurrent & FDWS sweep & 0.1323 & 0.423 & 0.1587 & 0.270 & 0.1455 \\
+    M6 & D7v3\_highSensReplayZ & FDWS+replay & 0.1233 & 0.477 & 0.1723 & 0.307 & 0.1478 \\
+    M7 & tau10\_sensCurrent & FDWS sweep & 0.1303 & 0.418 & 0.1688 & 0.291 & 0.1496 \\
+    M8 & B2\_vmf\_mix & vMF z-sampling & 0.1213 & 0.492 & 0.1785 & 0.301 & 0.1499 \\
+    M9 & tau05\_sensCurrent & FDWS sweep & 0.1313 & 0.427 & 0.1704 & 0.265 & 0.1508 \\
+    M10 & tau50\_sensReplay & FDWS sweep & 0.1255 & 0.454 & 0.1772 & 0.304 & 0.1514 \\
+    M11 & D9\_fdws\_pi & FDWS z-sampling & 0.1301 & 0.417 & 0.1754 & 0.323 & 0.1528 \\
+    M12 & vmfMix20\_FBpi\_replay & vMF sweep & 0.1125 & 0.519 & 0.1961 & 0.285 & 0.1543 \\
+    M13 & vmf20\_fdws\_optimized & vMF+FDWS & 0.1297 & 0.404 & 0.1883 & 0.306 & 0.1590 \\
+    M14 & D6\_fdws\_F & FDWS z-sampling & 0.1354 & 0.410 & 0.1838 & 0.255 & 0.1596 \\
+    M15 & vmfMix5\_Bpi\_replay & vMF sweep & 0.1724 & 0.416 & 0.1635 & 0.392 & 0.1679 \\
+    M16 & vmf20\_fdws\_fixed & vMF+FDWS & 0.1194 & 0.462 & 0.2167 & 0.221 & 0.1681 \\
+    M17 & piL2\_FB\_replay & Distill combined & 0.1308 & 0.432 & 0.2100 & 0.282 & 0.1704 \\
+    M18 & vmfMix20\_Bpi\_replay & vMF sweep & 0.1523 & 0.489 & 0.1936 & 0.435 & 0.1729 \\
+    M19 & piL2\_B\_replay & Distill combined & 0.1640 & 0.413 & 0.1833 & 0.412 & 0.1736 \\
+    M20 & piGram\_FB\_replay & Distill combined & 0.1297 & 0.421 & 0.2184 & 0.260 & 0.1741 \\
+    M21 & vmfMix10\_Bpi\_replay & vMF sweep & 0.1688 & 0.400 & 0.1821 & 0.413 & 0.1755 \\
+    M22 & vmfMix5\_FBpi\_replay & vMF sweep & 0.1412 & 0.411 & 0.2172 & 0.272 & 0.1792 \\
+    M23 & vmfMix10\_FBpi\_replay & vMF sweep & 0.1229 & 0.428 & 0.2515 & 0.205 & 0.1872 \\
+    M24 & tau05\_sensReplay & FDWS sweep & 0.1313 & 0.401 & 0.2508 & 0.257 & 0.1910 \\
+    M25 & piGram\_FBM\_replay & Distill combined & 0.1119 & 0.521 & 0.2826 & 0.140 & 0.1973 \\
+    M26 & piL2\_M\_replay & Distill combined & 0.1128 & 0.512 & 0.2952 & 0.157 & 0.2040 \\
+    M27 & piL2\_FBM\_replay & Distill combined & 0.1188 & 0.485 & 0.2897 & 0.141 & 0.2042 \\
+    M28 & taskincr\_z32 & Baseline & 0.1590 & 0.275 & 0.2903 & 0.091 & 0.2246 \\
+    M29 & B1\_vmf\_bind & vMF z-sampling & 0.1885 & 0.253 & 0.2630 & 0.221 & 0.2258 \\
+    M30 & D4\_smr\_pi & SMR z-sampling & 0.1275 & 0.426 & 0.3318 & 0.087 & 0.2297 \\
+    M31 & D1\_smr\_F & SMR z-sampling & 0.1283 & 0.393 & 0.3420 & 0.110 & 0.2351 \\
+    M32 & D2\_smr\_B & SMR z-sampling & 0.1264 & 0.423 & 0.3779 & 0.092 & 0.2522 \\
+    M33 & piGram\_B\_current & Distill combined & 0.3818 & 0.052 & 0.1390 & 0.516 & 0.2604 \\
+    M34 & piGram\_M\_replay & Distill combined & 0.1150 & 0.517 & 0.4161 & 0.042 & 0.2656 \\
+    M35 & pi\_gram\_replay & Distillation & 0.4908 & 0.017 & 0.1387 & 0.516 & 0.3148 \\
+    M36 & piL2\_Q\_current & Distill combined & 0.3942 & 0.032 & 0.2529 & 0.231 & 0.3236 \\
+    M37 & pi\_l2\_replay & Distillation & 0.4741 & 0.040 & 0.1778 & 0.464 & 0.3259 \\
+    M38 & piL2\_B\_current & Distill combined & 0.4639 & 0.048 & 0.1888 & 0.393 & 0.3264 \\
+    M39 & pi\_cosine\_replay & Distillation & 0.4671 & 0.024 & 0.1857 & 0.368 & 0.3264 \\
+    M40 & piGram\_FB\_current & Distill combined & 0.4907 & 0.033 & 0.1953 & 0.399 & 0.3430 \\
+    M41 & piL2\_F\_current & Distill combined & 0.5175 & 0.048 & 0.1729 & 0.412 & 0.3452 \\
+    M42 & piGram\_Q\_current & Distill combined & 0.4349 & 0.015 & 0.2597 & 0.254 & 0.3473 \\
+    M43 & pi\_contrastive\_replay & Distillation & 0.5192 & 0.021 & 0.2000 & 0.408 & 0.3596 \\
+    M44 & piGram\_F\_current & Distill combined & 0.5382 & 0.037 & 0.1932 & 0.419 & 0.3657 \\
+    M45 & piL2\_FB\_current & Distill combined & 0.6166 & 0.016 & 0.1694 & 0.411 & 0.3930 \\
+    M46 & vmfMix10\_Fpi\_replay & vMF sweep & 0.6030 & 0.002 & 0.2009 & 0.295 & 0.4019 \\
+    M47 & piGram\_Q\_replay & Distill combined & 0.6350 & 0.002 & 0.1890 & 0.248 & 0.4120 \\
+    M48 & FB\_l2\_replay & Distillation & 0.6712 & 0.000 & 0.1595 & 0.365 & 0.4153 \\
+    M49 & piL2\_Q\_replay & Distill combined & 0.6546 & 0.001 & 0.1915 & 0.252 & 0.4230 \\
+    M50 & vmfMix20\_Fpi\_replay & vMF sweep & 0.6588 & 0.000 & 0.1944 & 0.319 & 0.4266 \\
+    M51 & piGram\_F\_replay & Distill combined & 0.6495 & 0.002 & 0.2057 & 0.220 & 0.4276 \\
+    M52 & piL2\_F\_replay & Distill combined & 0.6945 & 0.000 & 0.1747 & 0.275 & 0.4346 \\
+    M53 & F\_cosine\_current & Distillation & 0.7357 & 0.000 & 0.1511 & 0.416 & 0.4434 \\
+    M54 & F\_contrastive\_current & Distillation & 0.7614 & 0.000 & 0.1349 & 0.489 & 0.4481 \\
+    M55 & piL2\_M\_current & Distill combined & 0.6326 & 0.000 & 0.2666 & 0.071 & 0.4496 \\
+    M56 & B\_l2\_current & Distillation & 0.7607 & 0.000 & 0.1456 & 0.423 & 0.4531 \\
+    M57 & B\_contrastive\_current & Distillation & 0.7608 & 0.000 & 0.1477 & 0.457 & 0.4542 \\
+    M58 & C6\_fdws\_F & FDWS z-sampling & 0.7671 & 0.000 & 0.1467 & 0.448 & 0.4569 \\
+    M59 & A2\_vmf\_mix & vMF z-sampling & 0.7643 & 0.000 & 0.1514 & 0.378 & 0.4578 \\
+    M60 & F\_l2\_replay & Distillation & 0.7516 & 0.000 & 0.1771 & 0.324 & 0.4644 \\
+    M61 & M\_cosine\_replay & Distillation & 0.7423 & 0.000 & 0.1867 & 0.418 & 0.4645 \\
+    M62 & pi\_gram\_current & Distillation & 0.7497 & 0.000 & 0.1797 & 0.426 & 0.4647 \\
+    M63 & piL2\_FBM\_current & Distill combined & 0.6508 & 0.004 & 0.2827 & 0.098 & 0.4668 \\
+    M64 & Q\_contrastive\_current & Distillation & 0.7804 & 0.000 & 0.1551 & 0.397 & 0.4677 \\
+    M65 & B\_gram\_current & Distillation & 0.7611 & 0.000 & 0.1795 & 0.324 & 0.4703 \\
+    M66 & B\_contrastive\_replay & Distillation & 0.7431 & 0.000 & 0.2012 & 0.318 & 0.4722 \\
+    M67 & M\_cosine\_current & Distillation & 0.7767 & 0.000 & 0.1723 & 0.414 & 0.4745 \\
+    M68 & B\_gram\_replay & Distillation & 0.7235 & 0.000 & 0.2274 & 0.300 & 0.4754 \\
+    M69 & M\_contrastive\_current & Distillation & 0.7871 & 0.000 & 0.1667 & 0.416 & 0.4769 \\
+    M70 & F\_l2\_current & Distillation & 0.8104 & 0.000 & 0.1460 & 0.482 & 0.4782 \\
+    M71 & B\_l2\_replay & Distillation & 0.7849 & 0.000 & 0.1723 & 0.395 & 0.4786 \\
+    M72 & Q\_l2\_replay & Distillation & 0.7323 & 0.000 & 0.2259 & 0.222 & 0.4791 \\
+    M73 & B\_cosine\_replay & Distillation & 0.7911 & 0.000 & 0.1773 & 0.360 & 0.4842 \\
+    M74 & pi\_l2\_current & Distillation & 0.8284 & 0.000 & 0.1442 & 0.418 & 0.4863 \\
+    M75 & F\_cosine\_replay & Distillation & 0.7583 & 0.000 & 0.2166 & 0.296 & 0.4874 \\
+    M76 & C7\_fdws\_B & FDWS z-sampling & 0.8041 & 0.000 & 0.1712 & 0.428 & 0.4877 \\
+    M77 & F\_contrastive\_replay & Distillation & 0.7359 & 0.000 & 0.2426 & 0.305 & 0.4892 \\
+    M78 & Q\_cosine\_replay & Distillation & 0.7649 & 0.000 & 0.2192 & 0.363 & 0.4920 \\
+    M79 & FB\_l2\_current & Distillation & 0.7901 & 0.000 & 0.1963 & 0.353 & 0.4932 \\
+    M80 & M\_contrastive\_replay & Distillation & 0.7469 & 0.000 & 0.2396 & 0.276 & 0.4932 \\
+    M81 & piGram\_M\_current & Distill combined & 0.7200 & 0.001 & 0.2700 & 0.098 & 0.4950 \\
+    M82 & B\_cosine\_current & Distillation & 0.8370 & 0.000 & 0.1572 & 0.399 & 0.4971 \\
+    M83 & C1\_smr\_F & SMR z-sampling & 0.7278 & 0.000 & 0.2682 & 0.184 & 0.4980 \\
+    M84 & Q\_cosine\_current & Distillation & 0.7906 & 0.000 & 0.2077 & 0.382 & 0.4991 \\
+    M85 & Q\_contrastive\_replay & Distillation & 0.7756 & 0.000 & 0.2249 & 0.312 & 0.5002 \\
+    M86 & FB\_cosine\_current & Distillation & 0.8363 & 0.000 & 0.1685 & 0.401 & 0.5024 \\
+    M87 & C10\_fdws\_piFB & FDWS z-sampling & 0.8484 & 0.000 & 0.1627 & 0.387 & 0.5056 \\
+    M88 & C9\_fdws\_pi & FDWS z-sampling & 0.7689 & 0.000 & 0.2495 & 0.207 & 0.5092 \\
+    M89 & FB\_contrastive\_current & Distillation & 0.8260 & 0.000 & 0.1953 & 0.352 & 0.5107 \\
+    M90 & C4\_smr\_pi & SMR z-sampling & 0.7439 & 0.000 & 0.2804 & 0.128 & 0.5122 \\
+    M91 & vmfMix5\_Fpi\_replay & vMF sweep & 0.7386 & 0.000 & 0.2974 & 0.202 & 0.5180 \\
+    M92 & A1\_vmf\_bind & vMF z-sampling & 0.7757 & 0.000 & 0.2659 & 0.238 & 0.5208 \\
+    M93 & C2\_smr\_B & SMR z-sampling & 0.7858 & 0.000 & 0.2745 & 0.153 & 0.5301 \\
+    M94 & naive\_seq\_z32 & Baseline & 0.7502 & 0.000 & 0.3142 & 0.171 & 0.5322 \\
+    M95 & Q\_l2\_current & Distillation & 0.8246 & 0.000 & 0.2463 & 0.258 & 0.5354 \\
+    M96 & FB\_contrastive\_replay & Distillation & 0.7292 & 0.000 & 0.3460 & 0.293 & 0.5376 \\
+    M97 & M\_l2\_replay & Distillation & 0.7354 & 0.000 & 0.3484 & 0.082 & 0.5419 \\
+    M98 & M\_l2\_current & Distillation & 0.8296 & 0.000 & 0.2768 & 0.097 & 0.5532 \\
+    M99 & pi\_cosine\_current & Distillation & 0.7526 & 0.000 & 0.3566 & 0.298 & 0.5546 \\
+    M100 & pi\_contrastive\_current & Distillation & 0.7707 & 0.000 & 0.3469 & 0.045 & 0.5588 \\
+    M101 & piGram\_FBM\_current & Distill combined & 0.7906 & 0.003 & 0.3311 & 0.076 & 0.5608 \\
+    M102 & FB\_cosine\_replay & Distillation & 0.7144 & 0.000 & 0.4250 & 0.189 & 0.5697 \\
+    M103 & Q\_gram\_current & Distillation & 0.7419 & 0.008 & 0.5520 & 0.023 & 0.6470 \\
+    M104 & FB\_gram\_replay & Distillation & 0.7083 & 0.000 & 0.6307 & 0.003 & 0.6695 \\
+    M105 & M\_gram\_current & Distillation & 0.7098 & 0.004 & 0.6406 & 0.001 & 0.6752 \\
+    M106 & F\_gram\_replay & Distillation & 0.7179 & 0.000 & 0.6452 & 0.017 & 0.6816 \\
+    M107 & Q\_gram\_replay & Distillation & 0.7295 & 0.000 & 0.6432 & 0.013 & 0.6863 \\
+    M108 & M\_gram\_replay & Distillation & 0.6707 & 0.002 & 0.7535 & 0.003 & 0.7121 \\
+    M109 & F\_gram\_current & Distillation & 0.6549 & 0.000 & 0.8777 & 0.000 & 0.7663 \\
+    M110 & FB\_gram\_current & Distillation & 0.6743 & 0.010 & 0.8902 & 0.000 & 0.7823 \\
+\end{longtable}
+\end{small}
+
+%% =====================================================================
+\section{Overall Performance Rankings}
+%% =====================================================================
+
+\subsection{Top 30 Methods: Mean Distance}
+Figure~\ref{fig:bar_top30} shows the mean final distance to goal for the top 30 methods,
+with Q1 (memory) and Q3 (plasticity) side by side.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{bar_top30_mean_d.png}
+\caption{Top 30 methods by overall score: mean distance to goal in Q1 (memory) and Q3 (plasticity).
+Error bars show standard deviation across 3 training seeds.}
+\label{fig:bar_top30}
+\end{figure}
+
+\subsection{Top 20 Detailed Results}
+
+\begin{small}
+\begin{longtable}{llp{2.5cm}p{3.2cm}rp{3.2cm}rr}
+\caption{Top 20 methods with standard deviations.}
+\label{tab:top20} \\
+\toprule
+M-ID & Name & Category & Q1 mean\_d & Q1 s10 & Q3 mean\_d & Q3 s10 & Overall \\
+\midrule
+\endfirsthead
+\toprule
+M-ID & Name & Category & Q1 mean\_d & Q1 s10 & Q3 mean\_d & Q3 s10 & Overall \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+    M1 & D7\_fdws\_B & FDWS z-sampling & 0.1158$\pm$0.0128 & 0.490 & 0.1627$\pm$0.0239 & 0.322 & 0.1393 \\
+    M2 & piGram\_B\_replay & Distill combined & 0.1613$\pm$0.0180 & 0.426 & 0.1195$\pm$0.0113 & 0.534 & 0.1404 \\
+    M3 & D10\_fdws\_piFB & FDWS z-sampling & 0.1180$\pm$0.0093 & 0.476 & 0.1641$\pm$0.0311 & 0.317 & 0.1410 \\
+    M4 & tau10\_sensReplay & FDWS sweep & 0.1175$\pm$0.0143 & 0.474 & 0.1654$\pm$0.0364 & 0.342 & 0.1414 \\
+    M5 & tau50\_sensCurrent & FDWS sweep & 0.1323$\pm$0.0154 & 0.423 & 0.1587$\pm$0.0122 & 0.270 & 0.1455 \\
+    M6 & D7v3\_highSensReplayZ & FDWS+replay & 0.1233$\pm$0.0178 & 0.477 & 0.1723$\pm$0.0248 & 0.307 & 0.1478 \\
+    M7 & tau10\_sensCurrent & FDWS sweep & 0.1303$\pm$0.0083 & 0.418 & 0.1688$\pm$0.0326 & 0.291 & 0.1496 \\
+    M8 & B2\_vmf\_mix & vMF z-sampling & 0.1213$\pm$0.0148 & 0.492 & 0.1785$\pm$0.0292 & 0.301 & 0.1499 \\
+    M9 & tau05\_sensCurrent & FDWS sweep & 0.1313$\pm$0.0191 & 0.427 & 0.1704$\pm$0.0116 & 0.265 & 0.1508 \\
+    M10 & tau50\_sensReplay & FDWS sweep & 0.1255$\pm$0.0043 & 0.454 & 0.1772$\pm$0.0216 & 0.304 & 0.1514 \\
+    M11 & D9\_fdws\_pi & FDWS z-sampling & 0.1301$\pm$0.0079 & 0.417 & 0.1754$\pm$0.0149 & 0.323 & 0.1528 \\
+    M12 & vmfMix20\_FBpi\_replay & vMF sweep & 0.1125$\pm$0.0092 & 0.519 & 0.1961$\pm$0.0336 & 0.285 & 0.1543 \\
+    M13 & vmf20\_fdws\_optimized & vMF+FDWS & 0.1297$\pm$0.0165 & 0.404 & 0.1883$\pm$0.0458 & 0.306 & 0.1590 \\
+    M14 & D6\_fdws\_F & FDWS z-sampling & 0.1354$\pm$0.0181 & 0.410 & 0.1838$\pm$0.0368 & 0.255 & 0.1596 \\
+    M15 & vmfMix5\_Bpi\_replay & vMF sweep & 0.1724$\pm$0.0142 & 0.416 & 0.1635$\pm$0.0201 & 0.392 & 0.1679 \\
+    M16 & vmf20\_fdws\_fixed & vMF+FDWS & 0.1194$\pm$0.0023 & 0.462 & 0.2167$\pm$0.0243 & 0.221 & 0.1681 \\
+    M17 & piL2\_FB\_replay & Distill combined & 0.1308$\pm$0.0126 & 0.432 & 0.2100$\pm$0.0363 & 0.282 & 0.1704 \\
+    M18 & vmfMix20\_Bpi\_replay & vMF sweep & 0.1523$\pm$0.0340 & 0.489 & 0.1936$\pm$0.0631 & 0.435 & 0.1729 \\
+    M19 & piL2\_B\_replay & Distill combined & 0.1640$\pm$0.0149 & 0.413 & 0.1833$\pm$0.0505 & 0.412 & 0.1736 \\
+    M20 & piGram\_FB\_replay & Distill combined & 0.1297$\pm$0.0089 & 0.421 & 0.2184$\pm$0.0696 & 0.260 & 0.1741 \\
+\end{longtable}
+\end{small}
+
+\subsection{Success Rate: Top 30}
+Figure~\ref{fig:bar_s10} shows the success rate (fraction of episodes reaching within 0.10 of goal).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{bar_top30_s10.png}
+\caption{Top 30 methods: success rate (s10) for Q1 and Q3. Higher is better.}
+\label{fig:bar_s10}
+\end{figure}
+
+%% =====================================================================
+\section{Memory vs.\ Plasticity Analysis}
+%% =====================================================================
+
+\subsection{All Methods}
+Figure~\ref{fig:scatter_all} shows the memory--plasticity trade-off across all methods.
+Points closer to the origin are better on both axes.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{scatter_all.png}
+\caption{Memory (Q1 mean\_d) vs.\ Plasticity (Q3 mean\_d) for all methods.
+The dashed line indicates the approximate Pareto frontier.}
+\label{fig:scatter_all}
+\end{figure}
+
+\subsection{Top 30 Zoomed}
+Figure~\ref{fig:scatter_top30} zooms into the top 30 methods with M-ID labels.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\linewidth]{scatter_top30.png}
+\caption{Memory vs.\ Plasticity for the top 30 methods, labeled by M-ID.}
+\label{fig:scatter_top30}
+\end{figure}
+
+%% =====================================================================
+\section{Ablation Studies}
+%% =====================================================================
+
+\subsection{Distillation Target (B $\times$ C $\times$ D sweep)}
+
+Key findings from the distillation sweep:
+\begin{itemize}
+    \item \textbf{Replay is essential:} ``current'' distillation (on the current mini-batch)
+    causes catastrophic forgetting on Q1; ``replay'' distillation preserves Q1.
+    \item \textbf{Policy distillation ($\pi$) helps most:} Distilling the policy network
+    combined with B or FB targets (e.g., piGram\_B\_replay, piL2\_B\_replay) gives the best
+    memory--plasticity trade-off among pure distillation methods.
+    \item \textbf{Gram loss outperforms L2 on B-target:} piGram\_B\_replay (M2) achieves
+    overall 0.140, vs.\ piL2\_B\_replay at 0.174.
+    \item \textbf{F-only and M-only distillation fails:} Distilling only F or only M collapses
+    Q1 performance (mean\_d $> 0.6$), indicating B is the critical representation.
+    \item \textbf{Gram/contrastive losses on raw representations diverge:}
+    F\_gram, FB\_gram, M\_gram methods have overall $> 0.65$.
+\end{itemize}
+
+\subsection{z-Sampling Strategy (Axis E)}
+
+\begin{itemize}
+    \item \textbf{FDWS z-sampling dominates:} D7\_fdws\_B (FDWS on backward net, M1) achieves
+    overall 0.139, the best among all methods in the original sweep.
+    \item \textbf{SMR (successor measure routing) underperforms:} D1--D5 (SMR variants) all have
+    Q3 mean\_d $> 0.33$, indicating poor plasticity despite good Q1 memory.
+    \item \textbf{vMF mixture alone is competitive:} B2\_vmf\_mix (M8) achieves 0.150 overall,
+    close to FDWS variants.
+    \item \textbf{No-distillation z-sampling (C-series) fails:} Without replay distillation,
+    all z-sampling strategies collapse on Q1 (mean\_d $> 0.72$).
+\end{itemize}
+
+\subsection{vMF Component Count Sweep}
+
+\begin{itemize}
+    \item \textbf{More components help on B-target:} vmfMix20\_Bpi (M16, overall 0.173) $<$
+    vmfMix10\_Bpi (M19, 0.175) $<$ vmfMix5\_Bpi (M14, 0.168). Non-monotonic due to variance.
+    \item \textbf{FB+pi target is unstable with vMF:} vmfMix20\_FBpi (M12, 0.154) is good
+    but vmfMix10\_FBpi (M20, 0.187) and vmfMix5\_FBpi (M21, 0.179) are worse.
+    \item \textbf{F-target vMF collapses:} vmfMix*\_Fpi methods have Q1 mean\_d $> 0.6$,
+    confirming F-only distillation is harmful.
+\end{itemize}
+
+\subsection{FDWS Temperature Sweep}
+
+\begin{itemize}
+    \item \textbf{Lower temperature is better with replay sensitivity:}
+    tau10\_sensReplay (M4, 0.141) $<$ tau50\_sensReplay (M10, 0.151) $<$
+    tau05\_sensReplay (M23, 0.191).
+    $\tau=10$ with replay-buffer sensitivity is optimal.
+    \item \textbf{Current-batch sensitivity is also competitive:}
+    tau50\_sensCurrent (M5, 0.145) is close to the best replay variant.
+    \item \textbf{Sensitivity source matters less than expected:} The gap between
+    sensReplay and sensCurrent is small ($\sim$0.004 at $\tau=10$).
+\end{itemize}
+
+\subsection{Combined vMF + FDWS}
+
+\begin{itemize}
+    \item \textbf{D7v3 (high-sensitivity replay z):} M6, overall 0.148. Uses FDWS-weighted
+    z-sampling with sensitivity-selected replay z vectors.
+    \item \textbf{vMF20+FDWS (fixed $\tau=1$):} Combines 20-component vMF mixture with
+    FDWS weighting at fixed temperature.
+    \item \textbf{vMF20+FDWS (optimized):} Uses per-stage optimized FDWS temperature
+    via validation performance.
+\end{itemize}
+
+\subsection{Category Summary}
+
+\begin{table}[H]
+\centering
+\caption{Summary statistics by method category.}
+\begin{tabular}{lrrrr}
+\toprule
+Category & Count & Best Overall & Median Overall & Mean Overall \\
+\midrule
+    FDWS z-sampling & 8 & 0.1393 & 0.3083 & 0.3190 \\
+    Distill combined & 24 & 0.1404 & 0.3441 & 0.3293 \\
+    FDWS sweep & 6 & 0.1414 & 0.1502 & 0.1549 \\
+    FDWS+replay & 1 & 0.1478 & 0.1478 & 0.1478 \\
+    vMF z-sampling & 4 & 0.1499 & 0.3418 & 0.3386 \\
+    vMF sweep & 9 & 0.1543 & 0.1792 & 0.2648 \\
+    vMF+FDWS & 2 & 0.1590 & 0.1635 & 0.1635 \\
+    Baseline & 2 & 0.2246 & 0.3784 & 0.3784 \\
+    SMR z-sampling & 6 & 0.2297 & 0.3751 & 0.3762 \\
+    Distillation & 48 & 0.3148 & 0.4883 & 0.5128 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% =====================================================================
+\section{Method Family Comparison}
+%% =====================================================================
+
+Figure~\ref{fig:violin} shows box plots comparing method families on overall score and success rate.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{violin_sweep.png}
+\caption{Box plots of overall score and mean success rate by method family.}
+\label{fig:violin}
+\end{figure}
+
+%% =====================================================================
+\section{z-Space Visualization}
+%% =====================================================================
+
+Figure~\ref{fig:zsphere} visualizes the learned $z$-representations on the unit sphere
+for $z_{\text{dim}}=3$ models. Each panel shows the distribution of inferred $z$ vectors
+for goals in Q1 (blue), Q2 (green), and Q3 (red) after each training stage.
+
+\textbf{Key observations:}
+\begin{itemize}
+    \item \textbf{FDWS+distill (D7v3):} z vectors for different quadrants form distinct clusters
+    that remain separated across stages, indicating good task discrimination and memory.
+    \item \textbf{Naive+distill:} Distillation alone partially preserves Q1 clusters but they
+    drift significantly after stages 2 and 3.
+    \item \textbf{Naive (no distill):} Without any continual learning mechanism, Q1 z-vectors
+    are completely overwritten by later tasks --- all points collapse to the same region.
+    \item \textbf{Opt vMF20+FDWS:} The vMF mixture creates well-separated, compact clusters
+    for each quadrant, with the best visual separation.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{z_spheres.png}
+\caption{z-space distribution on the unit sphere ($z_{\text{dim}}=3$). Rows: different methods.
+Columns: after each training stage. Colors: Q1 (blue), Q2 (green), Q3 (red).}
+\label{fig:zsphere}
+\end{figure}
+
+%% =====================================================================
+\section{Key Findings \& Conclusions}
+%% =====================================================================
+
+\begin{enumerate}
+    \item \textbf{FDWS z-sampling is the single most impactful technique.}
+    The top method (M1: FDWS-B with distillation, overall 0.139) uses Fisher-distance
+    weighted sampling to select z vectors that maximize information gain, combined with
+    Gram-based policy distillation on a replay buffer.
+
+    \item \textbf{Replay-based distillation is necessary but not sufficient.}
+    Without replay, all methods collapse on Q1 (mean\_d $> 0.7$).
+    With replay alone (without advanced z-sampling), performance plateaus around 0.14--0.17.
+
+    \item \textbf{Policy distillation ($\pi$) is the most important distillation target.}
+    Methods distilling only F or M representations fail, while $\pi$+B and $\pi$+FB
+    combinations consistently appear in the top 20.
+
+    \item \textbf{The memory--plasticity trade-off is real but manageable.}
+    The best methods achieve Q1 mean\_d $\approx 0.12$ and Q3 mean\_d $\approx 0.16$
+    simultaneously, with Q1 success rates $\sim$49\% and Q3 $\sim$32\%.
+
+    \item \textbf{vMF mixtures provide good z-space structure.}
+    The z-sphere visualizations confirm that vMF-based methods create well-separated
+    task clusters, which likely aids zero-shot transfer.
+
+    \item \textbf{Temperature tuning matters for FDWS.}
+    $\tau=10$ with replay sensitivity achieves the best FDWS-only result, but the
+    improvement over $\tau=50$ is modest.
+
+    \item \textbf{Combining vMF + FDWS is promising.}
+    The combined methods approach the Pareto frontier, suggesting that structured
+    z-priors (vMF) and information-theoretic sampling (FDWS) are complementary.
+
+    \item \textbf{No-distillation baselines are informative.}
+    The naive sequential baseline (overall $\approx 0.53$) and task-incremental
+    upper bound (overall $\approx 0.22$) bracket the performance range, with the
+    best continual methods closing 85\% of this gap.
+\end{enumerate}
+
+\subsection{Limitations \& Future Directions}
+\begin{itemize}
+    \item Evaluation is on a single 2D navigation domain; generalization to higher-dimensional
+    tasks and longer task sequences remains open.
+    \item The q123 protocol tests only 3 stages; scaling to 10+ stages may change the ranking.
+    \item All methods use the same network architecture; architecture search could yield further gains.
+    \item Online (non-offline) continual FB learning is unexplored.
+\end{itemize}
+
+\end{document}

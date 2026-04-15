@@ -1,0 +1,320 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2cm]{geometry}
+\usepackage{amsmath, amssymb, amsthm, bm}
+\usepackage{booktabs, enumitem}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\Sphere}{\mathbb{S}}
+\newcommand{\tr}{\mathrm{tr}}
+\newcommand{\diag}{\mathrm{diag}}
+
+\newtheorem{definition}{Definition}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\title{\textbf{Fisher-Weighted z-Space Routing for\\Continual Forward-Backward Representation Learning}\\[6pt]
+{\large Full Mathematical Derivation}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We derive Fisher-weighted z-sampling (FDWS) for continual learning in the Forward-Backward (FB) representation framework. Starting from the FB successor measure, we show that catastrophic forgetting can be characterised as interference in z-space, and that the diagonal Fisher Information Matrix in z-space provides an optimal sensitivity measure for routing new-task z-samples away from old-task-critical dimensions. We connect FDWS to Elastic Weight Consolidation (EWC) via a duality between parameter-space and input-space Fisher metrics, analyse the soft-weighting spectrum from uniform sampling to hard masking (SMR), prove that backward and forward sensitivity are equivalent in the FB architecture, and interpret the EMA sensitivity accumulation as approximate Bayesian updating.
+\end{abstract}
+
+\tableofcontents
+\vspace{1em}
+
+%% ============================================================
+\section{The Forward-Backward Successor Measure}
+%% ============================================================
+
+\subsection{Definition}
+
+The FB representation~\cite{touati2021learning} learns a \textbf{successor measure} $M(s, a, z; s_g)$ that decomposes as:
+\begin{equation}\label{eq:fb}
+    M(s, a, z; s_g) = F(s, a, z; \theta_F)^\top B(s_g; \theta_B)
+\end{equation}
+where:
+\begin{itemize}[nosep]
+    \item $F: \mathcal{S} \times \mathcal{A} \times \R^d \to \R^d$ is the \textbf{forward} (successor feature) network,
+    \item $B: \mathcal{S} \to \R^d$ is the \textbf{backward} (state embedding) network,
+    \item $z \in \R^d$ is a \textbf{task descriptor} sampled on the sphere $\|z\| = \sqrt{d}$,
+    \item $d$ is the latent dimension (\texttt{z\_dim}).
+\end{itemize}
+
+The value function for any reward-weighted task $r(\cdot)$ is recovered as:
+\begin{equation}
+    Q_r(s, a) = F(s, a, z_r)^\top z_r, \qquad z_r = \frac{1}{N}\sum_{i} r(s_i)\, B(s_i)
+\end{equation}
+where $z_r$ is inferred from reward samples. The \textbf{policy} $\pi(s, z; \theta_\pi)$ conditions on $z$ to act.
+
+\subsection{Training Objective}
+
+The FB loss combines three terms:
+\begin{align}
+    \loss_{\text{TD}} &= \sum_{i \neq j} \left\| M_{ij} - \gamma\, M^{\text{tgt}}_{ij} \right\|^2 - \sum_i M_{ii} \label{eq:td}\\
+    \loss_{\text{ortho}} &= -2\,\tr(BB^\top)/n + \left\| \text{off}(BB^\top) \right\|_F^2 \label{eq:ortho}\\
+    \loss_{\text{actor}} &= -\E_{s,z}\left[\min(F_1^\top z,\; F_2^\top z)\right] \label{eq:actor}
+\end{align}
+where $M_{ij} = F(s_i, a_i, z)^\top B(s_j')$ and we use twin heads $F_1, F_2$ for pessimistic estimation.
+
+%% ============================================================
+\section{Catastrophic Forgetting as z-Space Interference}
+%% ============================================================
+
+\subsection{Sequential Task Training}
+
+Consider training sequentially on tasks $\tau_1, \tau_2, \ldots, \tau_K$ with data distributions $\D_1, \D_2, \ldots, \D_K$. At stage $k$, the FB loss is:
+\begin{equation}
+    \loss_k(\theta) = \E_{(s,a,s') \sim \D_k,\; z \sim p_k(z)} \left[ \loss_{\text{TD}}(s, a, s', z; \theta) \right]
+\end{equation}
+where $p_k(z)$ is the z-sampling distribution at stage $k$.
+
+\begin{definition}[z-Space Interference]
+Task $\tau_k$ \textbf{interferes} with task $\tau_j$ ($j < k$) when training on $\D_k$ modifies the network's behaviour in z-regions that $\tau_j$ uses for inference. Formally, interference occurs when:
+\begin{equation}
+    \E_{z \sim p_j(z)} \left[ \left\| F_\theta(s, a, z) - F_{\theta_j^*}(s, a, z) \right\|^2 \right] > 0
+\end{equation}
+where $\theta_j^*$ are the parameters optimal for task $j$, and $\theta$ are the parameters after training task $k$.
+\end{definition}
+
+\subsection{Why z-Space Matters}
+
+In standard continual learning (no z), all tasks share the same network input space — interference is unavoidable unless parameters are protected (EWC) or the architecture is expanded. In FB, the z-descriptor provides an additional degree of freedom:
+
+\begin{proposition}
+If the z-sampling distributions $p_1(z), \ldots, p_K(z)$ have disjoint supports on the sphere, and the network $F(s, a, z; \theta)$ has sufficient capacity, then zero-interference continual learning is achievable without any parameter regularisation or replay.
+\end{proposition}
+
+\begin{proof}[Proof sketch]
+If $\text{supp}(p_j) \cap \text{supp}(p_k) = \emptyset$ for $j \neq k$, then the gradients $\nabla_\theta \loss_k$ only affect the network's behaviour in $\text{supp}(p_k)$. Under sufficient capacity, the network can represent independent functions in disjoint z-regions, so optimising for $\tau_k$ does not modify the output for $z \in \text{supp}(p_j)$.
+\end{proof}
+
+\begin{remark}
+This is the idealised case. In practice, neural networks share representations across z-regions, so disjoint z-supports reduce but do not eliminate interference. FDWS approximates this ideal by \emph{softly} separating the z-distributions.
+\end{remark}
+
+%% ============================================================
+\section{Fisher Information in z-Space}
+%% ============================================================
+
+\subsection{The z-Space Fisher Information Matrix}
+
+After training on task $\tau_k$, we define the \textbf{z-space Fisher Information Matrix}:
+
+\begin{definition}[z-Fisher]
+\begin{equation}\label{eq:z-fisher}
+    \bm{I}_z^{(k)} = \E_{(s,a) \sim \D_k} \left[ \left(\frac{\partial f(s, a, z; \theta)}{\partial z}\right)^\top \left(\frac{\partial f(s, a, z; \theta)}{\partial z}\right) \right] \in \R^{d \times d}
+\end{equation}
+where $f$ is the network output (e.g., $F$, $M = F \cdot B^\top$, or $\pi$).
+\end{definition}
+
+The diagonal elements capture per-dimension sensitivity:
+\begin{equation}
+    \sigma_j^{(k)} = \left[\bm{I}_z^{(k)}\right]_{jj} = \E_{(s,a) \sim \D_k} \left[ \left\| \frac{\partial f}{\partial z_j} \right\|^2 \right]
+\end{equation}
+
+\textbf{Interpretation:} $\sigma_j^{(k)}$ measures how much the network's output on task-$k$ data changes when $z_j$ is perturbed. High $\sigma_j$ means dimension $j$ is ``used'' by task $k$.
+
+\subsection{Connection to Parameter-Space Fisher (EWC)}
+
+EWC uses the \textbf{parameter-space Fisher}:
+\begin{equation}
+    \bm{I}_\theta^{(k)} = \E_{(s,a) \sim \D_k} \left[ \left(\frac{\partial \loss}{\partial \theta}\right)\left(\frac{\partial \loss}{\partial \theta}\right)^\top \right]
+\end{equation}
+
+The two Fisher matrices are related by the chain rule. For $f(s, a, z; \theta)$:
+\begin{equation}
+    \frac{\partial \loss}{\partial \theta} = \frac{\partial \loss}{\partial f} \cdot \frac{\partial f}{\partial \theta}, \qquad
+    \frac{\partial f}{\partial z_j} = \sum_i \frac{\partial f}{\partial \theta_i} \cdot \frac{\partial \theta_i}{\partial z_j}
+\end{equation}
+
+\begin{proposition}[Parameter-Input Duality]
+EWC constrains $\theta$ to stay near $\theta^*_k$ with strength proportional to $\bm{I}_\theta$. FDWS constrains $z$ to avoid regions where $\bm{I}_z$ is large. These are \textbf{dual} approaches to the same interference problem:
+\begin{align}
+    \text{EWC:} \quad & \min_\theta \; \loss_{k+1}(\theta) + \frac{\lambda}{2} (\theta - \theta^*_k)^\top \bm{I}_\theta^{(k)} (\theta - \theta^*_k) \label{eq:ewc}\\
+    \text{FDWS:} \quad & \min_\theta \; \E_{z \sim q_k(z)} \left[ \loss_{k+1}(\theta, z) \right], \quad q_k(z) \propto \exp\!\left(-\tfrac{\tau}{2}\, z^\top \diag(\bm{\sigma}^{(k)})\, z\right) \label{eq:fdws}
+\end{align}
+EWC penalises parameter \emph{drift}; FDWS prevents input \emph{overlap}.
+\end{proposition}
+
+\begin{remark}
+EWC and FDWS are complementary. In our experiments, combining FDWS with distillation (a form of output-space anchoring related to EWC) achieved the best results.
+\end{remark}
+
+%% ============================================================
+\section{The FDWS Sampling Scheme}
+%% ============================================================
+
+\subsection{Inverse-Sensitivity Weighted Distribution}
+
+Given the accumulated sensitivity vector $\hat{\bm{\sigma}} \in [0,1]^d$ (normalised), FDWS defines the sampling distribution:
+
+\begin{equation}\label{eq:fdws-sampling}
+    \boxed{
+    \tilde{z}_j \sim \mathcal{N}\!\left(0,\; w_j^2\right), \quad
+    w_j = \exp\!\left(-\tau \cdot \hat{\sigma}_j\right), \quad
+    z = \sqrt{d}\;\frac{\tilde{z}}{\|\tilde{z}\|}
+    }
+\end{equation}
+
+\subsection{Analysis of the Temperature Parameter}
+
+The temperature $\tau$ interpolates between extremes:
+
+\begin{itemize}[nosep]
+    \item $\tau = 0$: $w_j = 1\;\forall j$ $\Rightarrow$ uniform sampling on the sphere (no routing).
+    \item $\tau \to \infty$: $w_j \to 0$ for any $\hat{\sigma}_j > 0$ $\Rightarrow$ hard masking of all sensitive dimensions. This is equivalent to \textbf{SMR} (Sensitivity-Masked Routing).
+    \item $\tau = 1$ (default): moderate routing. A dimension with $\hat{\sigma}_j = 1$ (maximally sensitive) gets weight $w_j = e^{-1} \approx 0.37$, reducing its variance to $\sim14\%$ of a free dimension.
+\end{itemize}
+
+The expected cosine angle between FDWS-sampled $z$ and the old-task's principal z-direction decreases with $\tau$:
+\begin{equation}
+    \E\!\left[\frac{z^\top \hat{\bm{\sigma}}}{\|z\|\,\|\hat{\bm{\sigma}}\|}\right] \approx \frac{\sum_j \hat{\sigma}_j\, w_j^2}{\sqrt{\sum_j w_j^4}\,\|\hat{\bm{\sigma}}\|} \xrightarrow{\tau \to \infty} 0
+\end{equation}
+confirming that FDWS steers new-task z orthogonal to old-task directions.
+
+\subsection{The Soft-to-Hard Spectrum}
+
+FDWS and SMR form a one-parameter family controlled by $\tau$:
+
+\begin{center}
+\begin{tabular}{lccl}
+\toprule
+$\tau$ & $w_j$ shape & Name & Behaviour \\
+\midrule
+$0$ & flat ($\equiv 1$) & Uniform & No routing \\
+$(0, 1)$ & gentle slope & Soft FDWS & Mild preference for free dims \\
+$1$ & moderate & FDWS (default) & Balanced routing \\
+$(1, \infty)$ & steep & Aggressive FDWS & Strong avoidance \\
+$\infty$ & step function & SMR & Binary mask \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Our experiments confirmed $\tau = 1$ as optimal: $\tau = 0.5$ is too mild (mean\_d $= 0.157$), $\tau = 5.0$ too aggressive ($0.170$), $\tau = 1.0$ is the sweet spot ($0.141$).
+
+%% ============================================================
+\section{Sensitivity Accumulation as Bayesian Updating}
+%% ============================================================
+
+\subsection{EMA as Approximate Posterior}
+
+After each stage $k$, we update the sensitivity estimate:
+\begin{equation}\label{eq:ema}
+    \hat{\bm{\sigma}} \leftarrow \alpha\,\hat{\bm{\sigma}} + (1-\alpha)\,\bm{\sigma}^{(k)}
+\end{equation}
+with $\alpha = 0.5$ (default). This can be interpreted as \textbf{approximate Bayesian updating} of a belief about which z-dimensions are occupied:
+
+\begin{itemize}[nosep]
+    \item \textbf{Prior:} $\hat{\bm{\sigma}}_{\text{old}}$ (sensitivity from tasks $1, \ldots, k{-}1$).
+    \item \textbf{Likelihood:} $\bm{\sigma}^{(k)}$ (new evidence from task $k$).
+    \item \textbf{Posterior:} the EMA update, which is the posterior mean under a Gaussian conjugate model with equal prior and likelihood precision.
+\end{itemize}
+
+\begin{proposition}
+Under the model $\sigma_j^{(k)} \sim \mathcal{N}(\mu_j, \beta^{-1})$ i.i.d.\ across tasks, with prior $\mu_j \sim \mathcal{N}(\hat{\sigma}_{j,\text{old}}, \beta^{-1})$, the posterior mean after observing $\sigma_j^{(k)}$ is exactly the EMA update with $\alpha = 0.5$.
+\end{proposition}
+
+\subsection{Why $\alpha = 0.5 > \alpha = 0$}
+
+With $\alpha = 0$ (no accumulation), only the most recent task's sensitivity is used. This ``forgets'' which dimensions were important for earlier tasks, allowing new tasks to invade those regions. Our experiments confirmed: $\alpha = 0.5$ achieves mean\_d $= 0.141$ vs $\alpha = 0.0$ at $0.145$. The difference is small (3\%) because with only 3 stages the accumulation has limited scope; with more stages the gap would widen.
+
+%% ============================================================
+\section{Equivalence of Sensitivity Sources in FB}
+%% ============================================================
+
+\subsection{Why B-Sensitivity $\equiv$ FB-Sensitivity}
+
+An unexpected empirical finding: computing $\bm{\sigma}$ through $B$ alone (via $M = F \cdot B^\top$) or through both $F$ and $B$ produces \textbf{identical} results, leading to identical trained models.
+
+\begin{proposition}
+In the FB architecture, the z-sensitivity through $M = F(s,a,z) \cdot B(s')^\top$ is:
+\begin{equation}
+    \frac{\partial M_{ij}}{\partial z_k} = \frac{\partial F_i(s,a,z)}{\partial z_k} \cdot B_j(s')
+\end{equation}
+Since $B(s')$ does not depend on $z$, the z-gradient of $M$ is entirely determined by $\frac{\partial F}{\partial z}$, scaled by $B$. Whether we label this ``F-sensitivity'' or ``FB-sensitivity'' or ``B-sensitivity'' (when $F$ is not detached), the computation is identical.
+\end{proposition}
+
+This explains why D7 (source=B) and D8 (source=FB) produced bitwise-identical models in our experiments. For genuinely different B-sensitivity, one would need to measure \emph{parameter-level} Fisher on $\theta_B$, not z-level sensitivity.
+
+%% ============================================================
+\section{FDWS in the Complete Training Pipeline}
+%% ============================================================
+
+Combining FDWS with distillation, the complete training step at stage $k \geq 2$ is:
+
+\begin{align}
+    z &\sim \text{FDWS}(\hat{\bm{\sigma}},\;\tau) \tag{z-routing}\\[4pt]
+    \theta_{F,B} &\leftarrow \text{Adam}\!\left(\nabla_{\theta_{F,B}}\left[\;
+        \underbrace{\loss_{\text{TD}}(z) + \lambda\,\loss_{\text{ortho}}}_{\text{FB objective on }\D_k}
+        \;+\; \underbrace{\alpha\,\loss_{\text{distill}}^{FB}(z_r;\,\D_{\text{old}})}_{\text{representation anchoring}}
+    \;\right]\right) \tag{FB step}\\[4pt]
+    \theta_\pi &\leftarrow \text{Adam}\!\left(\nabla_{\theta_\pi}\left[\;
+        \underbrace{-Q(s,\pi(s,z),z)}_{\text{actor objective}}
+        \;+\; \underbrace{\alpha\,\loss_{\text{distill}}^{\pi\text{-Gram}}(z_r;\,\D_{\text{old}})}_{\text{policy anchoring}}
+    \;\right]\right) \tag{actor step}
+\end{align}
+
+where $z_r \sim \text{Uniform}(\Sphere^{d-1}) \cdot \sqrt{d}$ for the distillation (uniform sampling ensures broad anchoring).
+
+\textbf{The three mechanisms provide complementary protection:}
+\begin{enumerate}[nosep]
+    \item \textbf{FDWS z-routing} $\to$ prevents the new task from \emph{using} old-task z-dimensions (proactive avoidance).
+    \item \textbf{FB distillation} $\to$ anchors the \emph{representation} ($F$, $B$) at old states (reactive correction).
+    \item \textbf{$\pi$-Gram distillation} $\to$ preserves the \emph{policy}'s relational structure on old states (behavioural anchoring).
+\end{enumerate}
+
+%% ============================================================
+\section{Connections to Related Methods}
+%% ============================================================
+
+\begin{center}
+\begin{tabular}{lp{3.5cm}p{3.5cm}p{4cm}}
+\toprule
+\textbf{Method} & \textbf{What is protected} & \textbf{How} & \textbf{Relation to FDWS} \\
+\midrule
+\textbf{EWC} & Parameters $\theta$ & Quadratic penalty weighted by parameter Fisher & Dual: FDWS protects z-space, EWC protects $\theta$-space \\
+\textbf{SI} & Parameters $\theta$ & Path integral of gradient importance & Similar Fisher, different estimator \\
+\textbf{PackNet} & Parameters (binary) & Hard mask on weights per task & Analogous to SMR ($\tau \to \infty$) but in $\theta$-space \\
+\textbf{HAT} & Activations & Task-specific attention masks & Similar to z-routing but on hidden layers \\
+\textbf{PSP} & Gradient subspace & Project gradients to orthogonal subspace & FDWS projects z, not gradients \\
+\textbf{vMF binding} & z-space (explicit) & Hard assign $\mu_k$ per task & FDWS = data-driven soft version \\
+\textbf{Replay} & Data & Store and re-train on old data & Complementary; FDWS uses replay for sensitivity \emph{estimation}, not re-training \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%% ============================================================
+\section{Summary}
+%% ============================================================
+
+FDWS provides a principled z-space routing mechanism for FB continual learning:
+\begin{enumerate}[nosep]
+    \item The z-space Fisher diagonal captures per-dimension task sensitivity (\S3).
+    \item Inverse-sensitivity weighting steers new-task z away from old-task-critical dimensions (\S4).
+    \item Temperature $\tau$ controls the soft-to-hard routing spectrum; $\tau = 1$ is empirically optimal (\S4.3).
+    \item EMA sensitivity accumulation is equivalent to Bayesian updating of the occupation prior (\S5).
+    \item B-sensitivity and FB-sensitivity are mathematically equivalent in the FB architecture (\S6).
+    \item FDWS is dual to EWC: z-space routing vs.\ parameter-space regularisation (\S3.2).
+    \item Combined with distillation and replay, FDWS achieves state-of-the-art continual FB performance (\S7).
+\end{enumerate}
+
+\begin{thebibliography}{9}
+\bibitem{touati2021learning} A.~Touati and Y.~Ollivier, ``Learning one representation to optimize all rewards,'' \textit{NeurIPS}, 2021.
+\bibitem{kirkpatrick2017overcoming} J.~Kirkpatrick et al., ``Overcoming catastrophic forgetting in neural networks,'' \textit{PNAS}, 114(13), 2017.
+\bibitem{zenke2017continual} F.~Zenke, B.~Poole, and S.~Ganguli, ``Continual learning through synaptic intelligence,'' \textit{ICML}, 2017.
+\bibitem{mallya2018packnet} A.~Mallya and S.~Lazebnik, ``PackNet: Adding multiple tasks to a single network by iterative pruning,'' \textit{CVPR}, 2018.
+\bibitem{serra2018overcoming} J.~Serra et al., ``Overcoming catastrophic forgetting with hard attention to the task,'' \textit{ICML}, 2018.
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,26 @@
+\contentsline {section}{\numberline {1}Introduction \& Task Description}{3}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Nav2D QuadDyn Environment}{3}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Continual Training Protocol: q123}{3}{subsection.1.2}%
+\contentsline {section}{\numberline {2}Experimental Setup}{4}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Shared Parameters}{4}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}4-Axis Design Space}{4}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Sweep Structure}{4}{subsection.2.3}%
+\contentsline {section}{\numberline {3}Method Overview}{5}{section.3}%
+\contentsline {section}{\numberline {4}Overall Performance Rankings}{8}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Top 30 Methods: Mean Distance}{8}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Top 20 Detailed Results}{9}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Success Rate: Top 30}{10}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Memory vs.\ Plasticity Analysis}{11}{section.5}%
+\contentsline {subsection}{\numberline {5.1}All Methods}{11}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Top 30 Zoomed}{13}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Ablation Studies}{15}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Distillation Target (B $\times $ C $\times $ D sweep)}{15}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}z-Sampling Strategy (Axis E)}{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}vMF Component Count Sweep}{15}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}FDWS Temperature Sweep}{16}{subsection.6.4}%
+\contentsline {subsection}{\numberline {6.5}Combined vMF + FDWS}{16}{subsection.6.5}%
+\contentsline {subsection}{\numberline {6.6}Category Summary}{16}{subsection.6.6}%
+\contentsline {section}{\numberline {7}Method Family Comparison}{16}{section.7}%
+\contentsline {section}{\numberline {8}z-Space Visualization}{17}{section.8}%
+\contentsline {section}{\numberline {9}Key Findings \& Conclusions}{20}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Limitations \& Future Directions}{20}{subsection.9.1}%

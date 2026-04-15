@@ -1,0 +1,111 @@
+method_id,config_name,sweep,n_train_seeds,mean_d_Q1_mean,mean_d_Q1_std,s10_Q1_mean,s10_Q1_std,mean_d_Q3_mean,mean_d_Q3_std,s10_Q3_mean,s10_Q3_std,overall,M_id,category,display_name
+z_sampling/D7_fdws_B,D7_fdws_B,z_sampling,3,0.11581,0.01276,0.4897,0.0741,0.16274,0.02391,0.3221,0.0342,0.13927499999999998,M1,FDWS z-sampling,D7_fdws_B
+distill_combined/piGram_B_replay,piGram_B_replay,distill_combined,3,0.16127,0.018,0.426,0.0636,0.11948,0.0113,0.5344,0.0572,0.140375,M2,Distill combined,piGram_B_replay
+z_sampling/D10_fdws_piFB,D10_fdws_piFB,z_sampling,3,0.11799,0.00932,0.4763,0.0466,0.1641,0.03108,0.3168,0.0881,0.141045,M3,FDWS z-sampling,D10_fdws_piFB
+fdws_sweep/tau10_sensReplay,tau10_sensReplay,fdws_sweep,3,0.11749,0.01432,0.4737,0.0768,0.16536,0.03637,0.3419,0.0521,0.141425,M4,FDWS sweep,tau10_sensReplay
+fdws_sweep/tau50_sensCurrent,tau50_sensCurrent,fdws_sweep,3,0.13231,0.01539,0.4226,0.0482,0.15866,0.01219,0.2697,0.0297,0.145485,M5,FDWS sweep,tau50_sensCurrent
+D7v3_highSensReplayZ,D7v3_highSensReplayZ,D7v3,3,0.12333,0.0178,0.4771,0.0786,0.1723,0.0248,0.30717,0.0177,0.147815,M6,FDWS+replay,D7v3_highSensReplayZ
+fdws_sweep/tau10_sensCurrent,tau10_sensCurrent,fdws_sweep,3,0.13034,0.00829,0.4177,0.0458,0.16878,0.03262,0.2913,0.1057,0.14956000000000003,M7,FDWS sweep,tau10_sensCurrent
+z_sampling/B2_vmf_mix,B2_vmf_mix,z_sampling,3,0.12135,0.01481,0.4923,0.0687,0.17852,0.02916,0.3012,0.0581,0.149935,M8,vMF z-sampling,B2_vmf_mix
+fdws_sweep/tau05_sensCurrent,tau05_sensCurrent,fdws_sweep,3,0.13127,0.01906,0.4275,0.0943,0.17036,0.0116,0.2654,0.0378,0.150815,M9,FDWS sweep,tau05_sensCurrent
+fdws_sweep/tau50_sensReplay,tau50_sensReplay,fdws_sweep,3,0.12551,0.00427,0.4541,0.0473,0.17721,0.02159,0.3041,0.0418,0.15136,M10,FDWS sweep,tau50_sensReplay
+z_sampling/D9_fdws_pi,D9_fdws_pi,z_sampling,3,0.13012,0.00792,0.4166,0.047,0.17541,0.01494,0.323,0.0145,0.152765,M11,FDWS z-sampling,D9_fdws_pi
+vmf_sweep/vmfMix20_FBpi_replay,vmfMix20_FBpi_replay,vmf_sweep,3,0.11255,0.00921,0.5193,0.0406,0.19609,0.03361,0.2847,0.0537,0.15431999999999998,M12,vMF sweep,vmfMix20_FBpi_replay
+vmf20_fdws_optimized,vmf20_fdws_optimized,vmf_fdws_combined,3,0.1296760489543279,0.01654216030679691,0.4043375651041667,0.11678262635707476,0.188272958000501,0.045804273055642615,0.3062744140625,0.07537035364830685,0.15897450347741446,M13,vMF+FDWS,vmf20_fdws_optimized
+z_sampling/D6_fdws_F,D6_fdws_F,z_sampling,3,0.13542,0.01808,0.4103,0.0864,0.18384,0.0368,0.2553,0.0642,0.15963,M14,FDWS z-sampling,D6_fdws_F
+vmf_sweep/vmfMix5_Bpi_replay,vmfMix5_Bpi_replay,vmf_sweep,3,0.17241,0.01421,0.4165,0.0246,0.16345,0.02011,0.3921,0.0885,0.16793000000000002,M15,vMF sweep,vmfMix5_Bpi_replay
+vmf20_fdws_fixed,vmf20_fdws_fixed,vmf_fdws_combined,3,0.11944824457168579,0.002343072043404913,0.4618326822916667,0.01220594613232596,0.21673617760340372,0.024285878960299736,0.22111002604166666,0.016879675574577372,0.16809221108754474,M16,vMF+FDWS,vmf20_fdws_fixed
+distill_combined/piL2_FB_replay,piL2_FB_replay,distill_combined,3,0.13079,0.01261,0.4322,0.0684,0.21,0.03631,0.2817,0.0313,0.170395,M17,Distill combined,piL2_FB_replay
+vmf_sweep/vmfMix20_Bpi_replay,vmfMix20_Bpi_replay,vmf_sweep,3,0.15232,0.03405,0.4888,0.0406,0.19358,0.06309,0.435,0.1141,0.17295,M18,vMF sweep,vmfMix20_Bpi_replay
+distill_combined/piL2_B_replay,piL2_B_replay,distill_combined,3,0.16395,0.01491,0.4135,0.0312,0.18329,0.05054,0.412,0.064,0.17362,M19,Distill combined,piL2_B_replay
+distill_combined/piGram_FB_replay,piGram_FB_replay,distill_combined,3,0.12974,0.0089,0.4207,0.035,0.21843,0.06958,0.2596,0.0434,0.174085,M20,Distill combined,piGram_FB_replay
+vmf_sweep/vmfMix10_Bpi_replay,vmfMix10_Bpi_replay,vmf_sweep,3,0.1688,0.0289,0.4002,0.0366,0.18214,0.03243,0.4127,0.0913,0.17547000000000001,M21,vMF sweep,vmfMix10_Bpi_replay
+vmf_sweep/vmfMix5_FBpi_replay,vmfMix5_FBpi_replay,vmf_sweep,3,0.14117,0.01557,0.4108,0.0115,0.21721,0.05789,0.2721,0.05,0.17919,M22,vMF sweep,vmfMix5_FBpi_replay
+vmf_sweep/vmfMix10_FBpi_replay,vmfMix10_FBpi_replay,vmf_sweep,3,0.1229,0.00692,0.4278,0.0379,0.25149,0.07423,0.2048,0.0214,0.187195,M23,vMF sweep,vmfMix10_FBpi_replay
+fdws_sweep/tau05_sensReplay,tau05_sensReplay,fdws_sweep,3,0.13127,0.01953,0.4013,0.1035,0.25076,0.05107,0.257,0.0432,0.191015,M24,FDWS sweep,tau05_sensReplay
+distill_combined/piGram_FBM_replay,piGram_FBM_replay,distill_combined,3,0.11193,0.01677,0.5209,0.0547,0.28259,0.0982,0.1402,0.0744,0.19726,M25,Distill combined,piGram_FBM_replay
+distill_combined/piL2_M_replay,piL2_M_replay,distill_combined,3,0.11277,0.01061,0.5117,0.036,0.29516,0.0713,0.1572,0.0416,0.20396499999999998,M26,Distill combined,piL2_M_replay
+distill_combined/piL2_FBM_replay,piL2_FBM_replay,distill_combined,3,0.11876,0.01518,0.4848,0.0652,0.28965,0.00554,0.1409,0.0737,0.20420500000000003,M27,Distill combined,piL2_FBM_replay
+taskincr_z32,taskincr_z32,baseline,3,0.15895,0.02547,0.2748,0.0727,0.29026,0.07803,0.0912,0.0791,0.224605,M28,Baseline,taskincr_z32
+z_sampling/B1_vmf_bind,B1_vmf_bind,z_sampling,3,0.18852,0.03441,0.2527,0.0671,0.26298,0.02239,0.2214,0.0767,0.22575,M29,vMF z-sampling,B1_vmf_bind
+z_sampling/D4_smr_pi,D4_smr_pi,z_sampling,3,0.12748,0.00764,0.4264,0.034,0.33182,0.03561,0.087,0.0441,0.22965000000000002,M30,SMR z-sampling,D4_smr_pi
+z_sampling/D1_smr_F,D1_smr_F,z_sampling,3,0.12829,0.00676,0.3928,0.0182,0.34196,0.0811,0.1101,0.0453,0.23512499999999997,M31,SMR z-sampling,D1_smr_F
+z_sampling/D2_smr_B,D2_smr_B,z_sampling,3,0.12642,0.00771,0.4235,0.0384,0.37793,0.06947,0.0923,0.0411,0.252175,M32,SMR z-sampling,D2_smr_B
+distill_combined/piGram_B_current,piGram_B_current,distill_combined,3,0.38182,0.0579,0.052,0.0418,0.13897,0.01351,0.5162,0.039,0.260395,M33,Distill combined,piGram_B_current
+distill_combined/piGram_M_replay,piGram_M_replay,distill_combined,3,0.11498,0.01843,0.5169,0.0776,0.41612,0.13198,0.0417,0.0189,0.26555,M34,Distill combined,piGram_M_replay
+distill/pi_gram_replay,pi_gram_replay,distill,3,0.49081,0.04321,0.0166,0.0119,0.13872,0.01263,0.5156,0.0557,0.314765,M35,Distillation,pi_gram_replay
+distill_combined/piL2_Q_current,piL2_Q_current,distill_combined,3,0.39416,0.02545,0.0324,0.023,0.25294,0.01587,0.2305,0.0056,0.32355,M36,Distill combined,piL2_Q_current
+distill/pi_l2_replay,pi_l2_replay,distill,3,0.47412,0.07081,0.0399,0.0282,0.17777,0.06181,0.4635,0.157,0.325945,M37,Distillation,pi_l2_replay
+distill_combined/piL2_B_current,piL2_B_current,distill_combined,3,0.46391,0.11712,0.048,0.0373,0.18881,0.04967,0.3926,0.0833,0.32636,M38,Distill combined,piL2_B_current
+distill/pi_cosine_replay,pi_cosine_replay,distill,3,0.46709,0.06774,0.024,0.0207,0.18568,0.04261,0.3681,0.1068,0.32638500000000004,M39,Distillation,pi_cosine_replay
+distill_combined/piGram_FB_current,piGram_FB_current,distill_combined,3,0.49071,0.07222,0.0325,0.0233,0.19533,0.06524,0.399,0.1416,0.34302,M40,Distill combined,piGram_FB_current
+distill_combined/piL2_F_current,piL2_F_current,distill_combined,3,0.51747,0.15396,0.0483,0.0457,0.17285,0.04551,0.4118,0.0825,0.34516,M41,Distill combined,piL2_F_current
+distill_combined/piGram_Q_current,piGram_Q_current,distill_combined,3,0.43487,0.04698,0.0146,0.0196,0.25966,0.01737,0.2536,0.0377,0.347265,M42,Distill combined,piGram_Q_current
+distill/pi_contrastive_replay,pi_contrastive_replay,distill,3,0.51925,0.08553,0.0212,0.0167,0.19998,0.03335,0.4082,0.1118,0.359615,M43,Distillation,pi_contrastive_replay
+distill_combined/piGram_F_current,piGram_F_current,distill_combined,3,0.5382,0.12377,0.0369,0.0267,0.19323,0.05346,0.4188,0.1406,0.365715,M44,Distill combined,piGram_F_current
+distill_combined/piL2_FB_current,piL2_FB_current,distill_combined,3,0.61659,0.12027,0.0157,0.0222,0.16938,0.0116,0.4107,0.0644,0.392985,M45,Distill combined,piL2_FB_current
+vmf_sweep/vmfMix10_Fpi_replay,vmfMix10_Fpi_replay,vmf_sweep,3,0.603,0.02538,0.0015,0.001,0.2009,0.0433,0.295,0.0873,0.40195,M46,vMF sweep,vmfMix10_Fpi_replay
+distill_combined/piGram_Q_replay,piGram_Q_replay,distill_combined,3,0.63498,0.09137,0.0017,0.0012,0.18897,0.02892,0.2476,0.0739,0.411975,M47,Distill combined,piGram_Q_replay
+distill/FB_l2_replay,FB_l2_replay,distill,3,0.67118,0.01867,0.0001,0.0001,0.15949,0.00964,0.3651,0.0516,0.415335,M48,Distillation,FB_l2_replay
+distill_combined/piL2_Q_replay,piL2_Q_replay,distill_combined,3,0.65459,0.01358,0.0007,0.001,0.19148,0.0491,0.2521,0.1067,0.423035,M49,Distill combined,piL2_Q_replay
+vmf_sweep/vmfMix20_Fpi_replay,vmfMix20_Fpi_replay,vmf_sweep,3,0.6588,0.00828,0.0002,0.0002,0.19442,0.00375,0.3193,0.0362,0.42661000000000004,M50,vMF sweep,vmfMix20_Fpi_replay
+distill_combined/piGram_F_replay,piGram_F_replay,distill_combined,3,0.64951,0.05816,0.0016,0.0011,0.2057,0.02821,0.2199,0.0662,0.427605,M51,Distill combined,piGram_F_replay
+distill_combined/piL2_F_replay,piL2_F_replay,distill_combined,3,0.69445,0.03012,0.0004,0.0005,0.17472,0.00948,0.2752,0.063,0.434585,M52,Distill combined,piL2_F_replay
+distill/F_cosine_current,F_cosine_current,distill,3,0.73571,0.00907,0.0,0.0,0.15111,0.02229,0.416,0.0514,0.44340999999999997,M53,Distillation,F_cosine_current
+distill/F_contrastive_current,F_contrastive_current,distill,3,0.7614,0.01456,0.0001,0.0,0.1349,0.02245,0.4886,0.0964,0.44815,M54,Distillation,F_contrastive_current
+distill_combined/piL2_M_current,piL2_M_current,distill_combined,3,0.63263,0.05768,0.0,0.0,0.26659,0.02382,0.0715,0.007,0.44961,M55,Distill combined,piL2_M_current
+distill/B_l2_current,B_l2_current,distill,3,0.76071,0.01488,0.0001,0.0,0.14555,0.01442,0.4233,0.0513,0.45313000000000003,M56,Distillation,B_l2_current
+distill/B_contrastive_current,B_contrastive_current,distill,3,0.76077,0.0127,0.0,0.0,0.14768,0.01186,0.4574,0.0343,0.454225,M57,Distillation,B_contrastive_current
+z_sampling/C6_fdws_F,C6_fdws_F,z_sampling,3,0.76711,0.00476,0.0,0.0,0.14674,0.01058,0.4479,0.0541,0.45692499999999997,M58,FDWS z-sampling,C6_fdws_F
+z_sampling/A2_vmf_mix,A2_vmf_mix,z_sampling,3,0.76428,0.02708,0.0001,0.0,0.15139,0.00328,0.3782,0.0686,0.457835,M59,vMF z-sampling,A2_vmf_mix
+distill/F_l2_replay,F_l2_replay,distill,3,0.75163,0.00962,0.0,0.0,0.17711,0.01282,0.324,0.0503,0.46437,M60,Distillation,F_l2_replay
+distill/M_cosine_replay,M_cosine_replay,distill,3,0.74229,0.0275,0.0,0.0,0.18675,0.05828,0.4183,0.1458,0.46452,M61,Distillation,M_cosine_replay
+distill/pi_gram_current,pi_gram_current,distill,3,0.74967,0.07169,0.0,0.0,0.17972,0.09031,0.4257,0.1248,0.46469499999999997,M62,Distillation,pi_gram_current
+distill_combined/piL2_FBM_current,piL2_FBM_current,distill_combined,3,0.65079,0.01077,0.0035,0.0008,0.28274,0.04463,0.098,0.0213,0.466765,M63,Distill combined,piL2_FBM_current
+distill/Q_contrastive_current,Q_contrastive_current,distill,3,0.78038,0.02537,0.0,0.0,0.15509,0.00322,0.3972,0.0039,0.467735,M64,Distillation,Q_contrastive_current
+distill/B_gram_current,B_gram_current,distill,3,0.76115,0.00873,0.0001,0.0,0.17951,0.03244,0.3235,0.122,0.47033,M65,Distillation,B_gram_current
+distill/B_contrastive_replay,B_contrastive_replay,distill,3,0.74307,0.00488,0.0001,0.0001,0.20124,0.08145,0.3178,0.1254,0.472155,M66,Distillation,B_contrastive_replay
+distill/M_cosine_current,M_cosine_current,distill,3,0.77672,0.03467,0.0,0.0,0.17227,0.03762,0.4138,0.0953,0.474495,M67,Distillation,M_cosine_current
+distill/B_gram_replay,B_gram_replay,distill,3,0.72351,0.02827,0.0002,0.0002,0.22736,0.03551,0.3005,0.0328,0.475435,M68,Distillation,B_gram_replay
+distill/M_contrastive_current,M_contrastive_current,distill,3,0.78713,0.03532,0.0001,0.0001,0.16666,0.04787,0.4165,0.0756,0.476895,M69,Distillation,M_contrastive_current
+distill/F_l2_current,F_l2_current,distill,3,0.8104,0.02912,0.0,0.0,0.14598,0.00838,0.4822,0.0751,0.47819,M70,Distillation,F_l2_current
+distill/B_l2_replay,B_l2_replay,distill,3,0.78485,0.007,0.0,0.0,0.17229,0.04328,0.3952,0.1056,0.47857000000000005,M71,Distillation,B_l2_replay
+distill/Q_l2_replay,Q_l2_replay,distill,3,0.73232,0.00969,0.0,0.0,0.22586,0.00723,0.222,0.0451,0.47909,M72,Distillation,Q_l2_replay
+distill/B_cosine_replay,B_cosine_replay,distill,3,0.79106,0.03515,0.0,0.0,0.17731,0.04178,0.3605,0.0865,0.484185,M73,Distillation,B_cosine_replay
+distill/pi_l2_current,pi_l2_current,distill,3,0.82844,0.01626,0.0,0.0,0.14422,0.01262,0.418,0.0748,0.48633,M74,Distillation,pi_l2_current
+distill/F_cosine_replay,F_cosine_replay,distill,3,0.75827,0.01145,0.0001,0.0,0.21657,0.03356,0.2958,0.0525,0.48742,M75,Distillation,F_cosine_replay
+z_sampling/C7_fdws_B,C7_fdws_B,z_sampling,3,0.80409,0.03903,0.0,0.0,0.17122,0.01716,0.4276,0.093,0.487655,M76,FDWS z-sampling,C7_fdws_B
+distill/F_contrastive_replay,F_contrastive_replay,distill,3,0.73593,0.01236,0.0001,0.0,0.24257,0.06074,0.3048,0.1236,0.48924999999999996,M77,Distillation,F_contrastive_replay
+distill/Q_cosine_replay,Q_cosine_replay,distill,3,0.76492,0.08808,0.0003,0.0003,0.21915,0.04974,0.3635,0.1027,0.492035,M78,Distillation,Q_cosine_replay
+distill/FB_l2_current,FB_l2_current,distill,3,0.79009,0.04781,0.0,0.0,0.19625,0.03908,0.3527,0.0373,0.49317,M79,Distillation,FB_l2_current
+distill/M_contrastive_replay,M_contrastive_replay,distill,3,0.74685,0.02532,0.0,0.0,0.23963,0.04932,0.2758,0.0356,0.49324,M80,Distillation,M_contrastive_replay
+distill_combined/piGram_M_current,piGram_M_current,distill_combined,3,0.72003,0.10315,0.0007,0.0009,0.26998,0.02547,0.0977,0.0341,0.495005,M81,Distill combined,piGram_M_current
+distill/B_cosine_current,B_cosine_current,distill,3,0.83703,0.01833,0.0,0.0,0.15716,0.04249,0.3986,0.1207,0.497095,M82,Distillation,B_cosine_current
+z_sampling/C1_smr_F,C1_smr_F,z_sampling,3,0.72775,0.07611,0.0003,0.0004,0.26822,0.02133,0.1837,0.0267,0.497985,M83,SMR z-sampling,C1_smr_F
+distill/Q_cosine_current,Q_cosine_current,distill,3,0.79058,0.02065,0.0001,0.0,0.20767,0.04423,0.3821,0.1127,0.499125,M84,Distillation,Q_cosine_current
+distill/Q_contrastive_replay,Q_contrastive_replay,distill,3,0.77557,0.07595,0.0001,0.0,0.22489,0.04251,0.3125,0.028,0.50023,M85,Distillation,Q_contrastive_replay
+distill/FB_cosine_current,FB_cosine_current,distill,3,0.83625,0.06089,0.0001,0.0,0.1685,0.01527,0.4009,0.046,0.502375,M86,Distillation,FB_cosine_current
+z_sampling/C10_fdws_piFB,C10_fdws_piFB,z_sampling,3,0.84841,0.03029,0.0,0.0,0.1627,0.01369,0.3873,0.0942,0.505555,M87,FDWS z-sampling,C10_fdws_piFB
+z_sampling/C9_fdws_pi,C9_fdws_pi,z_sampling,3,0.7689,0.01712,0.0001,0.0,0.24955,0.04994,0.2071,0.0685,0.509225,M88,FDWS z-sampling,C9_fdws_pi
+distill/FB_contrastive_current,FB_contrastive_current,distill,3,0.82601,0.05901,0.0001,0.0,0.19532,0.0819,0.3519,0.1557,0.510665,M89,Distillation,FB_contrastive_current
+z_sampling/C4_smr_pi,C4_smr_pi,z_sampling,3,0.74392,0.00913,0.0,0.0,0.28039,0.01657,0.1282,0.0199,0.512155,M90,SMR z-sampling,C4_smr_pi
+vmf_sweep/vmfMix5_Fpi_replay,vmfMix5_Fpi_replay,vmf_sweep,3,0.73861,0.016,0.0,0.0,0.29745,0.11447,0.2017,0.106,0.51803,M91,vMF sweep,vmfMix5_Fpi_replay
+z_sampling/A1_vmf_bind,A1_vmf_bind,z_sampling,3,0.77571,0.02874,0.0,0.0,0.26594,0.11561,0.2381,0.1299,0.520825,M92,vMF z-sampling,A1_vmf_bind
+z_sampling/C2_smr_B,C2_smr_B,z_sampling,3,0.7858,0.01487,0.0,0.0,0.27445,0.02113,0.1526,0.0302,0.5301250000000001,M93,SMR z-sampling,C2_smr_B
+naive_seq_z32,naive_seq_z32,baseline,1,0.75018,0.0,0.0001,0.0,0.31421,0.0,0.1714,0.0,0.532195,M94,Baseline,naive_seq_z32
+distill/Q_l2_current,Q_l2_current,distill,3,0.82456,0.03758,0.0,0.0,0.24627,0.01911,0.2584,0.062,0.535415,M95,Distillation,Q_l2_current
+distill/FB_contrastive_replay,FB_contrastive_replay,distill,3,0.72922,0.01388,0.0,0.0,0.34599,0.27899,0.2932,0.2074,0.537605,M96,Distillation,FB_contrastive_replay
+distill/M_l2_replay,M_l2_replay,distill,3,0.73541,0.07191,0.0002,0.0003,0.34841,0.04794,0.0824,0.0425,0.54191,M97,Distillation,M_l2_replay
+distill/M_l2_current,M_l2_current,distill,3,0.82965,0.03824,0.0001,0.0,0.2768,0.05172,0.0968,0.0141,0.553225,M98,Distillation,M_l2_current
+distill/pi_cosine_current,pi_cosine_current,distill,3,0.75264,0.01508,0.0,0.0,0.35658,0.27972,0.2983,0.2114,0.55461,M99,Distillation,pi_cosine_current
+distill/pi_contrastive_current,pi_contrastive_current,distill,3,0.77072,0.0199,0.0001,0.0,0.34695,0.01772,0.0454,0.0097,0.558835,M100,Distillation,pi_contrastive_current
+distill_combined/piGram_FBM_current,piGram_FBM_current,distill_combined,3,0.79056,0.2538,0.0026,0.002,0.33105,0.09674,0.0756,0.0489,0.560805,M101,Distill combined,piGram_FBM_current
+distill/FB_cosine_replay,FB_cosine_replay,distill,3,0.7144,0.06697,0.0004,0.0005,0.42496,0.2418,0.1894,0.1623,0.56968,M102,Distillation,FB_cosine_replay
+distill/Q_gram_current,Q_gram_current,distill,3,0.7419,0.16302,0.0082,0.0096,0.55204,0.10855,0.023,0.0215,0.64697,M103,Distillation,Q_gram_current
+distill/FB_gram_replay,FB_gram_replay,distill,3,0.70828,0.04559,0.0,0.0,0.6307,0.05159,0.0031,0.0019,0.66949,M104,Distillation,FB_gram_replay
+distill/M_gram_current,M_gram_current,distill,3,0.70984,0.09882,0.0041,0.0049,0.6406,0.08275,0.0012,0.0016,0.6752199999999999,M105,Distillation,M_gram_current
+distill/F_gram_replay,F_gram_replay,distill,3,0.71794,0.04185,0.0004,0.0006,0.64522,0.07977,0.0168,0.0145,0.6815800000000001,M106,Distillation,F_gram_replay
+distill/Q_gram_replay,Q_gram_replay,distill,3,0.72946,0.01066,0.0001,0.0001,0.64319,0.06511,0.0127,0.0092,0.6863250000000001,M107,Distillation,Q_gram_replay
+distill/M_gram_replay,M_gram_replay,distill,3,0.6707,0.0418,0.0016,0.0018,0.75351,0.03072,0.0028,0.0014,0.712105,M108,Distillation,M_gram_replay
+distill/F_gram_current,F_gram_current,distill,3,0.65493,0.07663,0.0,0.0,0.87767,0.06417,0.0,0.0,0.7663,M109,Distillation,F_gram_current
+distill/FB_gram_current,FB_gram_current,distill,3,0.67428,0.08673,0.0101,0.0143,0.89025,0.03336,0.0,0.0,0.782265,M110,Distillation,FB_gram_current
